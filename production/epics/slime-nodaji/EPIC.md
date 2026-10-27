@@ -31,7 +31,7 @@
 
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
-| 001 | 슬라임 필드와 코인 드롭 | Logic | Ready | N/A |
+| 001 | 슬라임 필드와 코인 드롭 | Logic | Complete | N/A |
 | 002 | 영웅 강하·착지 충격·기사 자동전투 | Visual/Feel | Ready | N/A |
 | 003 | 커서 자석 수집 + 상자 5등급·배율 | Logic | Ready | N/A |
 | 004 | 시간제 한 판 + 상자 개봉·정산 화면 | UI | Ready | N/A |

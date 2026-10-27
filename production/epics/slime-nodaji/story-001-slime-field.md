@@ -1,7 +1,7 @@
 # Story 001: 슬라임 필드와 코인 드롭
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
@@ -87,3 +87,12 @@
 
 - Depends on: None
 - Unlocks: `production/epics/slime-nodaji/story-002-hero-drop-combat.md`, `production/epics/slime-nodaji/story-003-magnet-chest-tiers.md`
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-27
+**Criteria**: 8/8 passing (AC-1, 3, 4, 7 by the user's run; AC-2, 5 by the user's run plus an engine-executed check of `SlimeField.slime_hp` / `roll_coin_kind`; AC-6 by an engine-executed check of `SlimeField.coin_value` against the formula, 6 cases, 0 mismatches — not visible on screen; AC-8 by code search)
+**Deviations**: advisory, logged as TD-001..TD-004 in `docs/tech-debt-register.md` — hardcoded draw shapes/colors in `slime.gd`/`coin.gd`; `slime_field.json` schema only in a code doc comment; `Coin.advance` can re-emit `expired`; `*.json` must be added to the export include filter
+**Test Evidence**: waived at qa.level minimal; run evidence `production/qa/evidence/story-001-slime-field/` (2 screenshots + stamp, UNCHANGED at close)
+**Reviewed by**: self, no independent review

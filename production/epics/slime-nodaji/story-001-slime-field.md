@@ -1,12 +1,12 @@
 # Story 001: 슬라임 필드와 코인 드롭
 
 > **Epic**: slime-nodaji
-> **Status**: Ready
+> **Status**: In Progress
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: [set by /dev-story when implementation begins]
+> **Last Updated**: 2026-10-27
 
 ## Context
 
@@ -57,13 +57,14 @@
 
 ## Files
 
-- src/gameplay/slime/slime.gd
-- src/gameplay/slime/slime_field.gd
-- src/gameplay/coin/coin.gd
+- src/gameplay/slime/slime.gd (+ .uid)
+- src/gameplay/slime/slime_field.gd (+ .uid)
+- src/gameplay/coin/coin.gd (+ .uid)
+- src/gameplay/slime/slime_field_demo.gd (+ .uid) — dev harness
+- src/gameplay/slime/slime_field_demo.tscn — dev harness
 - assets/data/slime_field.json
-- tests/unit/slime-field/slime_field_test.gd
-
----
+- .godot/global_script_class_cache.cfg (Slime, SlimeField, Coin registered)
+- tests/unit/slime-field/slime_field_test.gd — not created (qa.level: minimal, tests waived)
 
 ## QA Test Cases
 

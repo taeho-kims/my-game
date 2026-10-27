@@ -1,5 +1,11 @@
 ; Engine configuration file.
-; /dev-story or the developer sets run/main_scene once a scene exists.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
@@ -16,5 +22,4 @@ window/stretch/scale_mode="integer"
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
 textures/canvas_textures/default_texture_filter=0

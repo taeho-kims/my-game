@@ -1,0 +1,70 @@
+{
+  "reference_fps": 60,
+  "run_scale_base": 1.07,
+  "field": {
+    "top": 18,
+    "bottom_margin": 70
+  },
+  "spawn": {
+    "interval": 0.3,
+    "base_max": 12,
+    "max_per_density_level": 4,
+    "start_count": 8,
+    "margin_x": 30,
+    "margin_top": 20,
+    "margin_bottom": 10
+  },
+  "slime": {
+    "base_hp": 10,
+    "radius_min": 11,
+    "radius_max": 15,
+    "colors": ["#7ad06a", "#6cc4d8", "#e98aa6", "#b58ce6"],
+    "first_hop_min": 0.2,
+    "first_hop_max": 1.4,
+    "hop_interval_min": 0.8,
+    "hop_interval_max": 2.0,
+    "hop_speed_min": 25,
+    "hop_speed_max": 55,
+    "hop_y_ratio": 0.7,
+    "hop_duration": 0.35,
+    "glide_damping": 0.85,
+    "flash_time": 0.12,
+    "age_phase_max": 9,
+    "hop_stretch_x": 0.12,
+    "hop_stretch_y": 0.18,
+    "hop_lift": 8,
+    "wobble_amplitude": 0.03,
+    "wobble_speed": 4,
+    "hp_bar_width": 22
+  },
+  "drop": {
+    "coins_base": 1,
+    "extra_coin_chance": 0.4
+  },
+  "coin": {
+    "kind_chance": { "gem": 0.02, "silver": 0.13 },
+    "base_value": { "copper": 1, "silver": 4, "gem": 15 },
+    "value_bonus_per_coin_level": 0.3,
+    "colors": {
+      "copper": ["#f2c14e", "#b9862a"],
+      "silver": ["#e6ecf2", "#8e99a6"],
+      "gem": ["#8fe3ff", "#3b8fb3"]
+    },
+    "life": 9,
+    "blink_time": 2,
+    "blink_frequency": 20,
+    "scatter_speed_min": 20,
+    "scatter_speed_max": 70,
+    "scatter_y_ratio": 0.6,
+    "start_height": 4,
+    "pop_speed_min": 120,
+    "pop_speed_max": 220,
+    "gravity": 600,
+    "bounce_restitution": 0.35,
+    "bounce_min_speed": 30,
+    "drag": 0.9,
+    "margin_x": 6,
+    "bottom_slack": 10,
+    "spin_rate": 6.666667
+  }
+}

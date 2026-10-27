@@ -131,19 +131,19 @@ func _draw() -> void:
 	var width: float = roundf(rx) - left
 	var body_top: float = roundf(cy)
 	draw_rect(Rect2(left, body_top, width, -body_top), col)
-	draw_rect(Rect2(left, -3.0, width, 3.0), Color(0.0, 0.0, 0.0, 0.18))
+	draw_rect(Rect2(left, -2.0, width, 2.0), Color(0.0, 0.0, 0.0, 0.18))
 	draw_rect(Rect2(roundf(-r * 0.55 * sx), roundf(-r * 1.15 * sy), roundf(r * 0.35), roundf(r * 0.25)),
 			Color(1.0, 1.0, 1.0, 0.55))
 	var eye_x: float = roundf(r * 0.35)
 	var eye_y: float = roundf(-r * 0.75 * sy)
-	draw_rect(Rect2(-eye_x - 2.0, eye_y, 3.0, 4.0), EYE_COLOR)
-	draw_rect(Rect2(eye_x - 1.0, eye_y, 3.0, 4.0), EYE_COLOR)
+	draw_rect(Rect2(-eye_x - 1.0, eye_y, 2.0, 2.0), EYE_COLOR)
+	draw_rect(Rect2(eye_x - 1.0, eye_y, 2.0, 2.0), EYE_COLOR)
 
 	if hp < max_hp:
 		var bar_w: float = _cfg["hp_bar_width"]
 		var bar_y: float = roundf(-r * 1.6 * sy)
-		draw_rect(Rect2(roundf(-bar_w / 2.0) - 1.0, bar_y - 1.0, bar_w + 2.0, 5.0), HP_BAR_BACK_COLOR)
-		draw_rect(Rect2(roundf(-bar_w / 2.0), bar_y, roundf(bar_w * maxf(0.0, hp / max_hp)), 3.0), HP_BAR_FILL_COLOR)
+		draw_rect(Rect2(roundf(-bar_w / 2.0) - 1.0, bar_y - 1.0, bar_w + 2.0, 4.0), HP_BAR_BACK_COLOR)
+		draw_rect(Rect2(roundf(-bar_w / 2.0), bar_y, roundf(bar_w * maxf(0.0, hp / max_hp)), 2.0), HP_BAR_FILL_COLOR)
 
 
 ## Fills an ellipse with one-pixel-high rows so it stays pixel-art crisp at base resolution.

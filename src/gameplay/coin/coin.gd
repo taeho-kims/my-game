@@ -84,18 +84,18 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if _cfg.is_empty():
 		return
-	Slime.fill_ellipse(self, Vector2.ZERO, Vector2(4.0, 1.6), SHADOW_COLOR)
+	Slime.fill_ellipse(self, Vector2.ZERO, Vector2(2.0, 0.8), SHADOW_COLOR)
 	if is_blinked_off():
 		return
 	var cx: float = 0.0
-	var cy: float = roundf(-height - 4.0)
+	var cy: float = roundf(-height - 2.0)
 	if kind == "gem":
-		for row in range(-6, 4):
-			var half: float = float(row + 6) if row <= -1 else float(4 - row)
+		for row in range(-3, 2):
+			var half: float = float(row + 3) if row <= -1 else float(2 - row)
 			draw_rect(Rect2(cx - half, cy + float(row), half * 2.0 + 1.0, 1.0), _color_edge)
-		draw_rect(Rect2(cx - 2.0, cy - 4.0, 3.0, 3.0), _color_main)
+		draw_rect(Rect2(cx - 1.0, cy - 2.0, 2.0, 2.0), _color_main)
 		return
 	var spin: float = _age * float(_cfg["spin_rate"]) + position.x
-	var w: float = roundf(maxf(1.5, absf(cos(spin)) * 5.0))
-	draw_rect(Rect2(cx - w, cy - 5.0, w * 2.0, 10.0), _color_edge)
-	draw_rect(Rect2(cx - w + 1.0, cy - 4.0, w * 2.0 - 2.0, 7.0), _color_main)
+	var w: float = roundf(maxf(0.75, absf(cos(spin)) * 2.5))
+	draw_rect(Rect2(cx - w, cy - 3.0, w * 2.0, 5.0), _color_edge)
+	draw_rect(Rect2(cx - w + 1.0, cy - 2.0, w * 2.0 - 2.0, 3.0), _color_main)

@@ -1,6 +1,6 @@
-Reviewed-Content-Hash: src/gameplay/slime/slime.gd 2c6672eba3ccd3c471930f4668179eb3a39d848d
+Reviewed-Content-Hash: src/gameplay/slime/slime.gd 8702ed92228c45de3376e7ac14632e1fbaff2dc9
 Reviewed-Content-Hash: src/gameplay/slime/slime_field.gd 64d862adf70715bf05cbb39dc6d48c359024c33c
 Reviewed-Content-Hash: src/gameplay/slime/slime_field_demo.gd 32e51037a5647b5faaab11938cbd4f02f09c73e1
-Reviewed-Content-Hash: src/gameplay/slime/slime_field_demo.tscn a05af2e482691386c9ced44b5f4742441847d93d
-Reviewed-Content-Hash: src/gameplay/coin/coin.gd b730685d0c5bfd7a0db9b1c20bd774ffdd7fa506
-Reviewed-Content-Hash: assets/data/slime_field.json 0ad7fe872c4959163e8555fdbeecb683e6dcbc6c
+Reviewed-Content-Hash: src/gameplay/slime/slime_field_demo.tscn d8073cb2f923fc6da80e7fc79b6b03ce2ffb4b4c
+Reviewed-Content-Hash: src/gameplay/coin/coin.gd 5505e1094cfefedcbb56e6ebde863c0ef85088b9
+Reviewed-Content-Hash: assets/data/slime_field.json c367dd2caa1c629fce85881fd6d1d5935a833fa4

@@ -2,29 +2,29 @@
   "reference_fps": 60,
   "run_scale_base": 1.07,
   "field": {
-    "top": 18,
-    "bottom_margin": 70
+    "top": 9,
+    "bottom_margin": 35
   },
   "spawn": {
     "interval": 0.3,
     "base_max": 12,
     "max_per_density_level": 4,
     "start_count": 8,
-    "margin_x": 30,
-    "margin_top": 20,
-    "margin_bottom": 10
+    "margin_x": 15,
+    "margin_top": 10,
+    "margin_bottom": 5
   },
   "slime": {
     "base_hp": 10,
-    "radius_min": 11,
-    "radius_max": 15,
+    "radius_min": 5.5,
+    "radius_max": 7.5,
     "colors": ["#7ad06a", "#6cc4d8", "#e98aa6", "#b58ce6"],
     "first_hop_min": 0.2,
     "first_hop_max": 1.4,
     "hop_interval_min": 0.8,
     "hop_interval_max": 2.0,
-    "hop_speed_min": 25,
-    "hop_speed_max": 55,
+    "hop_speed_min": 12.5,
+    "hop_speed_max": 27.5,
     "hop_y_ratio": 0.7,
     "hop_duration": 0.35,
     "glide_damping": 0.85,
@@ -32,10 +32,10 @@
     "age_phase_max": 9,
     "hop_stretch_x": 0.12,
     "hop_stretch_y": 0.18,
-    "hop_lift": 8,
+    "hop_lift": 4,
     "wobble_amplitude": 0.03,
     "wobble_speed": 4,
-    "hp_bar_width": 22
+    "hp_bar_width": 11
   },
   "drop": {
     "coins_base": 1,
@@ -53,18 +53,18 @@
     "life": 9,
     "blink_time": 2,
     "blink_frequency": 20,
-    "scatter_speed_min": 20,
-    "scatter_speed_max": 70,
+    "scatter_speed_min": 10,
+    "scatter_speed_max": 35,
     "scatter_y_ratio": 0.6,
-    "start_height": 4,
-    "pop_speed_min": 120,
-    "pop_speed_max": 220,
-    "gravity": 600,
+    "start_height": 2,
+    "pop_speed_min": 60,
+    "pop_speed_max": 110,
+    "gravity": 300,
     "bounce_restitution": 0.35,
-    "bounce_min_speed": 30,
+    "bounce_min_speed": 15,
     "drag": 0.9,
-    "margin_x": 6,
-    "bottom_slack": 10,
+    "margin_x": 3,
+    "bottom_slack": 5,
     "spin_rate": 6.666667
   }
 }

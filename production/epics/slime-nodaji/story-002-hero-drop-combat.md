@@ -1,12 +1,12 @@
 # Story 002: 영웅 강하·착지 충격·기사 자동전투
 
 > **Epic**: slime-nodaji
-> **Status**: Ready
+> **Status**: In Progress
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Visual/Feel
 > **Estimate**: L
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: [set by /dev-story when implementation begins]
+> **Last Updated**: 2026-10-27
 
 ## Context
 
@@ -59,13 +59,12 @@
 
 ## Files
 
-- src/gameplay/hero/hero.gd
-- src/gameplay/hero/hero.tscn
-- src/gameplay/hero/landing_impact.gd
+- src/gameplay/hero/hero.gd (+ .uid)
+- src/gameplay/hero/landing_impact.gd (+ .uid)
+- src/gameplay/hero/hero_squad.gd (+ .uid)
 - assets/data/hero_knight.json
-- tests/unit/heroes/landing_damage_test.gd
-
----
+- src/gameplay/slime/slime_field_demo.gd — dev harness extended (knight drop, level exports, auto_drop_interval; old click-damage removed)
+- tests/unit/heroes/landing_damage_test.gd — not created (qa.level: minimal, tests waived)
 
 ## QA Test Cases
 

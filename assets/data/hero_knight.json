@@ -1,0 +1,78 @@
+{
+  "squad": {
+    "base_count": 2,
+    "count_per_hero_level": 1,
+    "drop_margin_top": 5
+  },
+  "drop": {
+    "height": 210,
+    "gravity": 550,
+    "initial_cooldown": 0.3,
+    "shadow_radius": 6,
+    "shadow_shrink_height": 250,
+    "shadow_min_scale": 0.3
+  },
+  "combat": {
+    "chase_speed": 45,
+    "range_base": 8,
+    "base_cooldown": 0.75,
+    "cooldown_speed_per_level": 0.15,
+    "base_damage": 5,
+    "damage_per_level": 0.25,
+    "damage_variance_min": 0.9,
+    "damage_variance_max": 1.1,
+    "swing_time": 0.15
+  },
+  "walk": {
+    "bob_frequency": 12,
+    "bob_height": 1
+  },
+  "landing": {
+    "base_radius": 23,
+    "radius_per_level": 3.5,
+    "base_damage": 8,
+    "damage_per_level": 10,
+    "run_scale_exponent": 0.5,
+    "vertical_weight": 1.4,
+    "ellipse_ratio": 0.7,
+    "shake_base": 1.5,
+    "shake_per_level": 0.25,
+    "shake_decay": 15,
+    "shake_offset_factor": 1.0,
+    "particle_count": 12,
+    "particle_speed_x": 70,
+    "particle_vy_min": -30,
+    "particle_vy_max": -5,
+    "particle_gravity": 250,
+    "particle_life": 0.4,
+    "particle_size": 2,
+    "particle_color": "#c8b48a",
+    "ring_time": 0.35,
+    "ring_width": 2,
+    "ring_shrink": 0.6,
+    "ring_color": "#f4e7c9"
+  },
+  "preview": {
+    "dash": 2.5,
+    "width": 1,
+    "points": 48,
+    "alpha": 0.5,
+    "color": "#f4e7c9"
+  },
+  "sound": {
+    "frequency": 110,
+    "duration": 0.12,
+    "pitch_rise": 1.5,
+    "volume": 0.05,
+    "mix_rate": 22050
+  },
+  "popup": {
+    "lifetime": 0.7,
+    "rise_speed": 15,
+    "jitter_x": 3,
+    "y_ratio": 1.6,
+    "font_size": 10,
+    "color": "#ffffff",
+    "outline_color": "#1b1612"
+  }
+}

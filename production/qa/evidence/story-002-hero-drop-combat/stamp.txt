@@ -1,5 +1,6 @@
-Reviewed-Content-Hash: src/gameplay/hero/hero.gd 3d255aa4287d8b964edfda7f55ec9621ac979054
+Reviewed-Content-Hash: src/gameplay/hero/hero.gd ff6ede34588baddf982685957649b7671c925b1c
 Reviewed-Content-Hash: src/gameplay/hero/landing_impact.gd 90101d7a8a11c1ade140ab247e07484a135b0ad6
 Reviewed-Content-Hash: src/gameplay/hero/hero_squad.gd 7a8cd0be77278c7816e358a71c040cabf10da610
 Reviewed-Content-Hash: src/gameplay/slime/slime_field_demo.gd 2d489fb385893bc6b0be0ae3b5f38f4bd0cfef43
 Reviewed-Content-Hash: assets/data/hero_knight.json ef41a67a129d5eaec8d408f6f5d2eda201bc1522
+Reviewed-Content-Hash: project.godot 3b4b50aab3ee02f4f395e18ac88639bf4af4df08

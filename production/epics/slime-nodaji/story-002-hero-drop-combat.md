@@ -1,12 +1,12 @@
 # Story 002: 영웅 강하·착지 충격·기사 자동전투
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Visual/Feel
 > **Estimate**: L
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: 2026-10-27
+> **Last Updated**: 2026-10-28
 
 ## Context
 
@@ -75,9 +75,9 @@
 ## Test Evidence
 
 **Story Type**: Visual/Feel
-**Required evidence**: 유지되는 스크린샷(착지 순간) + 서명 → `production/qa/evidence/hero-drop-combat-evidence.md`
+**Required evidence**: 유지되는 스크린샷(착지 순간) + 서명 → `production/qa/evidence/story-002-hero-drop-combat-evidence.md`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created — 서명 완료 (2026-10-28), 스크린샷 `production/qa/evidence/story-002-hero-drop-combat/`
 
 ---
 
@@ -85,3 +85,12 @@
 
 - Depends on: `production/epics/slime-nodaji/story-001-slime-field.md`
 - Unlocks: `production/epics/slime-nodaji/story-006-archer-berserker-hotbar.md`, `production/epics/slime-nodaji/story-007-run-events.md`
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-28
+**Criteria**: 10/10 passing (플레이 확인은 강하·착지·전투·손맛 4묶음 단위)
+**Deviations**: None (하드코딩 값 검사는 이번에 돌리지 않음)
+**Test Evidence**: production/qa/evidence/story-002-hero-drop-combat-evidence.md (서명 완료), 스크린샷 2장은 창 2배·canvas_items 설정으로 재촬영
+**Reviewed by**: self, no independent review

@@ -201,11 +201,15 @@ func _draw_popups() -> void:
 	var text_color: Color = Color.html(popup["color"])
 	var outline_color: Color = Color.html(popup["outline_color"])
 	for entry: Dictionary in _popups:
-		var fade: float = 1.0 - float(entry["age"]) / float(popup["lifetime"])
+		# Polish note 3 (story-002 playtest): full opacity until fade_start of the lifetime, then a
+		# linear fade, so the white digits do not turn grey on the green field.
+		var life: float = float(entry["age"]) / float(popup["lifetime"])
+		var fade_start: float = float(popup["fade_start"])
+		var fade: float = 1.0 if life <= fade_start else 1.0 - (life - fade_start) / maxf(0.0001, 1.0 - fade_start)
 		var pos: Vector2 = (Vector2(entry["pos"]) - Vector2(0.0, float(entry["age"]) * float(popup["rise_speed"]))).round()
 		var origin := Vector2(pos.x - 50.0, pos.y)
-		_popup_layer.draw_string(font, origin + Vector2.ONE, entry["text"], HORIZONTAL_ALIGNMENT_CENTER, 100.0,
-				size, Color(outline_color, fade))
+		_popup_layer.draw_string_outline(font, origin, entry["text"], HORIZONTAL_ALIGNMENT_CENTER, 100.0,
+				size, int(popup["outline_size"]), Color(outline_color, fade))
 		_popup_layer.draw_string(font, origin, entry["text"], HORIZONTAL_ALIGNMENT_CENTER, 100.0,
 				size, Color(text_color, fade))
 
@@ -231,7 +235,7 @@ static func _find_problem(data: Dictionary) -> String:
 		"preview": {"dash": num, "width": num, "points": num, "alpha": num, "color": str_type},
 		"sound": {"frequency": num, "duration": num, "pitch_rise": num, "volume": num, "mix_rate": num},
 		"popup": {"lifetime": num, "rise_speed": num, "jitter_x": num, "y_ratio": num, "font_size": num,
-			"color": str_type, "outline_color": str_type},
+			"color": str_type, "outline_color": str_type, "outline_size": num, "fade_start": num},
 	}
 	for key: String in schema:
 		if not data.has(key) or typeof(data[key]) != TYPE_DICTIONARY:

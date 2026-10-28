@@ -1,7 +1,7 @@
 class_name Coin
 extends Node2D
 ## A dropped coin: pops up, scatters, bounces, blinks in its last seconds and expires.
-## It is not collectable in this story (collection is story 003).
+## A Magnet (story 003) can take it over with `begin_flight` / `fly_to`.
 ##
 ## Implements production/epics/slime-nodaji/story-001-slime-field.md.
 ## Values ported from slime-nodaji.html (dropCoins, update coins, drawCoin).
@@ -18,7 +18,10 @@ var kind: String = ""
 var value: float = 0.0
 ## Altitude above the ground point.
 var height: float = 0.0
+## True once a magnet carries the coin (story 003): physics and expiry stop, the shadow is hidden.
+var flying: bool = false
 
+var _flight_spin: float = 0.0
 var _cfg: Dictionary = {}
 var _fps: float = 60.0
 var _bounds: Rect2
@@ -52,7 +55,7 @@ func setup(config: Dictionary, coin_kind: String, coin_value: float, bounds: Rec
 
 ## True while the coin is in the blinking-off half of its final seconds.
 func is_blinked_off() -> bool:
-	return _life_left < float(_cfg["blink_time"]) and sin(_life_left * float(_cfg["blink_frequency"])) > 0.0
+	return not flying and _life_left < float(_cfg["blink_time"]) and sin(_life_left * float(_cfg["blink_frequency"])) > 0.0
 
 
 ## Steps the physics and lifetime by `delta` seconds.
@@ -77,6 +80,22 @@ func advance(delta: float) -> void:
 		expired.emit(self)
 
 
+## Hands the coin to a magnet (production/epics/slime-nodaji/story-003-magnet-chest-tiers.md):
+## stops its own physics and lifetime so `expired` can no longer fire. The magnet moves it with `fly_to`.
+func begin_flight() -> void:
+	flying = true
+	height = 0.0
+	set_process(false)
+	queue_redraw()
+
+
+## Places a flying coin at `point` (field coordinates) with the given spin phase in radians.
+func fly_to(point: Vector2, spin: float) -> void:
+	position = point
+	_flight_spin = spin
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
 	advance(delta)
 
@@ -84,18 +103,26 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if _cfg.is_empty():
 		return
-	Slime.fill_ellipse(self, Vector2.ZERO, Vector2(2.0, 0.8), SHADOW_COLOR)
+	if not flying:
+		Slime.fill_ellipse(self, Vector2.ZERO, Vector2(2.0, 0.8), SHADOW_COLOR)
 	if is_blinked_off():
 		return
+	# Polish note 2 (story-001 playtest): the sprite is enlarged around its own centre by
+	# coin.draw_scale and glints on a short cycle so coins read on the green field.
 	var cx: float = 0.0
-	var cy: float = roundf(-height - 2.0)
+	var cy: float = 0.0
+	var draw_scale: float = float(_cfg["draw_scale"])
+	draw_set_transform(Vector2(0.0, roundf(-height - 2.0)), 0.0, Vector2(draw_scale, draw_scale))
+	var spin: float = _flight_spin if flying else _age * float(_cfg["spin_rate"]) + position.x
 	if kind == "gem":
-		for row in range(-3, 2):
+		for row: int in range(-3, 2):
 			var half: float = float(row + 3) if row <= -1 else float(2 - row)
 			draw_rect(Rect2(cx - half, cy + float(row), half * 2.0 + 1.0, 1.0), _color_edge)
 		draw_rect(Rect2(cx - 1.0, cy - 2.0, 2.0, 2.0), _color_main)
-		return
-	var spin: float = _age * float(_cfg["spin_rate"]) + position.x
-	var w: float = roundf(maxf(0.75, absf(cos(spin)) * 2.5))
-	draw_rect(Rect2(cx - w, cy - 3.0, w * 2.0, 5.0), _color_edge)
-	draw_rect(Rect2(cx - w + 1.0, cy - 2.0, w * 2.0 - 2.0, 3.0), _color_main)
+	else:
+		var w: float = roundf(maxf(0.75, absf(cos(spin)) * 2.5))
+		draw_rect(Rect2(cx - w, cy - 3.0, w * 2.0, 5.0), _color_edge)
+		draw_rect(Rect2(cx - w + 1.0, cy - 2.0, w * 2.0 - 2.0, 3.0), _color_main)
+	if sin(spin * float(_cfg["sparkle_frequency"])) > float(_cfg["sparkle_threshold"]):
+		draw_rect(Rect2(cx - 2.0, cy - 4.0, 1.0, 1.0), Color.html(_cfg["sparkle_color"]))
+	draw_set_transform(Vector2.ZERO)

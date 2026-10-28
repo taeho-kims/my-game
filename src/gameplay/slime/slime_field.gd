@@ -198,7 +198,8 @@ static func _find_problem(data: Dictionary) -> String:
 			"scatter_speed_max": TYPE_FLOAT, "scatter_y_ratio": TYPE_FLOAT, "start_height": TYPE_FLOAT,
 			"pop_speed_min": TYPE_FLOAT, "pop_speed_max": TYPE_FLOAT, "gravity": TYPE_FLOAT,
 			"bounce_restitution": TYPE_FLOAT, "bounce_min_speed": TYPE_FLOAT, "drag": TYPE_FLOAT,
-			"margin_x": TYPE_FLOAT, "bottom_slack": TYPE_FLOAT, "spin_rate": TYPE_FLOAT},
+			"margin_x": TYPE_FLOAT, "bottom_slack": TYPE_FLOAT, "spin_rate": TYPE_FLOAT, "draw_scale": TYPE_FLOAT,
+			"sparkle_frequency": TYPE_FLOAT, "sparkle_threshold": TYPE_FLOAT, "sparkle_color": TYPE_STRING},
 	}
 	for key: String in schema:
 		if not data.has(key):

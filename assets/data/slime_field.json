@@ -65,6 +65,10 @@
     "drag": 0.9,
     "margin_x": 3,
     "bottom_slack": 5,
-    "spin_rate": 6.666667
+    "spin_rate": 6.666667,
+    "draw_scale": 1.5,
+    "sparkle_frequency": 0.9,
+    "sparkle_threshold": 0.92,
+    "sparkle_color": "#ffffff"
   }
 }

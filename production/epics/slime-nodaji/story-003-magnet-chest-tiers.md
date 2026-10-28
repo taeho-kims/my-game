@@ -1,12 +1,12 @@
 # Story 003: 커서 자석 수집 + 상자 5등급·배율
 
 > **Epic**: slime-nodaji
-> **Status**: Ready
+> **Status**: In Progress
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: [set by /dev-story when implementation begins]
+> **Last Updated**: 2026-10-28
 
 ## Context
 
@@ -58,13 +58,18 @@
 
 ## Files
 
-- src/gameplay/magnet/magnet.gd
-- src/gameplay/chest/chest.gd
-- src/gameplay/chest/chest_tiers.gd
+- src/gameplay/chest/chest_tiers.gd (+ .uid)
+- src/gameplay/chest/chest.gd (+ .uid)
+- src/gameplay/magnet/magnet.gd (+ .uid)
 - assets/data/chest_tiers.json
-- tests/unit/chest/chest_tier_test.gd
-
----
+- src/gameplay/coin/coin.gd — flight support (begin_flight, fly_to) and polish note 2 (draw_scale, sparkle)
+- src/gameplay/slime/slime_field.gd — coin schema keys for the polish values
+- assets/data/slime_field.json — coin.draw_scale, sparkle_* (polish note 2)
+- src/gameplay/hero/hero_squad.gd — damage popup outline and fade_start (polish note 3)
+- assets/data/hero_knight.json — popup.outline_size, popup.fade_start (polish note 3)
+- src/gameplay/slime/slime_field_demo.gd — dev harness: magnet_level, chest_level, chest and magnet wired in
+- tests/unit/chest/chest_tier_test.gd — 30 tests (written although qa.level is minimal, at the user's request)
+- tests/integration/chest/chest_data_test.gd — 6 tests: chest_tiers.json against the prototype's TIERS
 
 ## QA Test Cases
 

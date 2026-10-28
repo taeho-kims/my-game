@@ -73,6 +73,8 @@
     "y_ratio": 1.6,
     "font_size": 10,
     "color": "#ffffff",
-    "outline_color": "#1b1612"
+    "outline_color": "#1b1612",
+    "outline_size": 3,
+    "fade_start": 0.6
   }
 }

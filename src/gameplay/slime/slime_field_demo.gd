@@ -1,12 +1,14 @@
 extends Node2D
-## DEV HARNESS ONLY, not part of the game. Hosts a SlimeField and a HeroSquad at the base
-## resolution so stories 001 and 002 can be seen: slimes spawn and hop, a left click drops a
-## knight at the cursor (landing impact, then chase and sword attacks), kills drop coins that
-## bounce, blink and expire. Coins are not collected here (story 003). The old story-001
-## click-to-damage was removed because clicks now drop knights.
+## DEV HARNESS ONLY, not part of the game. Hosts a SlimeField, a HeroSquad, a Chest and a Magnet
+## at the base resolution so stories 001 to 003 can be seen: slimes spawn and hop, a left click
+## drops a knight at the cursor (landing impact, then chase and sword attacks), kills drop coins
+## that bounce, blink and expire, and coins inside the cursor's magnet ring fly into the chest
+## (story 003), which changes tier with its value. The old story-001 click-to-damage was removed
+## because clicks now drop knights.
 
 const SLIME_CONFIG_PATH: String = "res://assets/data/slime_field.json"
 const HERO_CONFIG_PATH: String = "res://assets/data/hero_knight.json"
+const CHEST_CONFIG_PATH: String = "res://assets/data/chest_tiers.json"
 const GRASS_COLOR: Color = Color("#4f8a3c")
 const AUTO_DROP_MARGIN: Vector2 = Vector2(20.0, 40.0)
 
@@ -24,11 +26,17 @@ const AUTO_DROP_MARGIN: Vector2 = Vector2(20.0, 40.0)
 @export var spd_level: int = 0
 ## Attack-damage upgrade level.
 @export var dmg_level: int = 0
+## Magnet upgrade level (ring radius 17 + 5 per level).
+@export var magnet_level: int = 0
+## Chest upgrade level (raises the tier multipliers by 0.1 per level and tier number).
+@export var chest_level: int = 0
 ## When above 0, drops a knight at a random point every this many seconds (unattended screenshots).
 @export var auto_drop_interval: float = 0.0
 
 var _field: SlimeField
 var _squad: HeroSquad
+var _chest: Chest
+var _magnet: Magnet
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _label: Label
 var _auto_drop_timer: float = 0.0
@@ -37,7 +45,8 @@ var _auto_drop_timer: float = 0.0
 func _ready() -> void:
 	var slime_config: Dictionary = SlimeField.load_config(SLIME_CONFIG_PATH)
 	var hero_config: Dictionary = HeroSquad.load_config(HERO_CONFIG_PATH)
-	if slime_config.is_empty() or hero_config.is_empty():
+	var chest_config: Dictionary = ChestTiers.load_config(CHEST_CONFIG_PATH)
+	if slime_config.is_empty() or hero_config.is_empty() or chest_config.is_empty():
 		return
 	_rng.randomize()
 	var size: Vector2 = get_viewport_rect().size
@@ -50,6 +59,14 @@ func _ready() -> void:
 	_squad.setup(hero_config, slime_config, _field, _rng, size, runs,
 			{"hero": hero_level, "land": land_level, "spd": spd_level, "dmg": dmg_level})
 	_squad.shake_changed.connect(_on_shake_changed)
+	# The chest goes after the field so it draws over the slimes; the magnet last so its ring
+	# and the flying coins draw on top.
+	_chest = Chest.new()
+	add_child(_chest)
+	_chest.setup(chest_config, size, SlimeField.run_scale(slime_config, runs), chest_level)
+	_magnet = Magnet.new()
+	add_child(_magnet)
+	_magnet.setup(chest_config, _rng, _field.coins, _chest, size, magnet_level)
 	_label = Label.new()
 	_label.position = Vector2(4.0, 2.0)
 	_label.add_theme_font_size_override("font_size", 10)
@@ -59,8 +76,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _field == null:
 		return
-	_label.text = "knights %d  slimes %d  coins %d  runs %d" % [
-			_squad.remaining, _field.slimes.size(), _field.coins.size(), runs]
+	_label.text = "knights %d  slimes %d  coins %d  chest %d (tier %d, payout %d)  runs %d" % [
+			_squad.remaining, _field.slimes.size(), _field.coins.size(), roundi(_chest.value),
+			_chest.tier(), _chest.total(), runs]
 	if auto_drop_interval > 0.0:
 		_auto_drop_timer -= delta
 		if _auto_drop_timer <= 0.0:

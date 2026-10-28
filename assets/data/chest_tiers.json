@@ -1,0 +1,38 @@
+{
+  "chest_bonus_per_level": 0.1,
+  "tiers": [
+    { "name": "나무 상자", "threshold": 0,    "multiplier": 1.0,  "color": "#9b6b43" },
+    { "name": "구리 상자", "threshold": 40,   "multiplier": 1.25, "color": "#d0844f" },
+    { "name": "은 상자",   "threshold": 140,  "multiplier": 1.5,  "color": "#d5dce4" },
+    { "name": "금 상자",   "threshold": 400,  "multiplier": 2.0,  "color": "#f2c14e" },
+    { "name": "수정 상자", "threshold": 1100, "multiplier": 3.0,  "color": "#8fe3ff" }
+  ],
+  "chest": {
+    "bottom_offset": 15,
+    "bump_decay": 5,
+    "bump_scale": 0.08,
+    "bump_lift": 2
+  },
+  "magnet": {
+    "base_radius": 17,
+    "radius_per_level": 5,
+    "fly_speed": 2.4,
+    "control_x_range": 30,
+    "control_rise_min": 30,
+    "control_rise_max": 70,
+    "arrival_height": 10,
+    "flight_spin_rate": 20,
+    "flight_z_index": 1,
+    "ring_color": "#f2c14e",
+    "ring_alpha": 0.55,
+    "ring_width": 2
+  },
+  "sound": {
+    "mix_rate": 22050,
+    "duration": 0.05,
+    "volume": 0.025,
+    "pitch_rise": 1.5,
+    "throttle_ms": 45,
+    "pitch": { "copper": 760, "silver": 990, "gem": 1320 }
+  }
+}

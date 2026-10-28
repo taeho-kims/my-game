@@ -28,6 +28,8 @@ var _cursor_active: bool = false
 var _player: AudioStreamPlayer
 var _streams: Dictionary = {}
 var _last_blip_msec: int = NEVER_PLAYED
+var _target: Vector2 = Vector2.ZERO
+var _sink: Callable = Callable()
 
 
 ## Magnet radius: base + per_level * magnet level.
@@ -101,6 +103,15 @@ func setup(config: Dictionary, rng: RandomNumberGenerator, coins: Array[Coin], c
 	add_child(_player)
 
 
+## Redirects coins that are absorbed from now on to `target_position` (field coordinates) and, on arrival,
+## calls `sink` with the Coin instead of depositing into the chest (the chest is left untouched).
+## Used by the final harvest (production/epics/slime-nodaji/story-004-run-timer-burst.md); without
+## a target the magnet behaves as before.
+func set_target(target_position: Vector2, sink: Callable) -> void:
+	_target = target_position
+	_sink = sink
+
+
 ## Takes a ground coin over: removes it from the coin list and sends it flying to the chest.
 ## Returns false (and does nothing) when the coin is not in the list, so a coin is never
 ## taken, and therefore never deposited, twice.
@@ -110,7 +121,7 @@ func absorb(coin: Coin) -> bool:
 		return false
 	_coins.remove_at(index)
 	var magnet: Dictionary = _config["magnet"]
-	var chest_pos: Vector2 = _chest.position
+	var chest_pos: Vector2 = _target if _sink.is_valid() else _chest.position
 	var control_range: float = magnet["control_x_range"]
 	var control := Vector2(
 			(coin.position.x + chest_pos.x) / 2.0 + _rng.randf_range(-control_range, control_range),
@@ -171,7 +182,10 @@ func _advance_flights(delta: float) -> void:
 		var coin: Coin = flight["coin"]
 		if flight["t"] >= 1.0:
 			_flights.remove_at(i)
-			_chest.deposit(coin.value)
+			if _sink.is_valid():
+				_sink.call(coin)
+			else:
+				_chest.deposit(coin.value)
 			_play_blip(coin.kind)
 			coin.queue_free()
 		else:

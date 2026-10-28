@@ -164,7 +164,7 @@ func _draw() -> void:
 	var bob: float = 0.0
 	if _walking:
 		var walk: Dictionary = _config["walk"]
-		bob = roundf(absf(sin(_bob_time * float(walk["bob_frequency"]))) * float(walk["bob_height"]))
+		bob = absf(sin(_bob_time * float(walk["bob_frequency"]))) * float(walk["bob_height"])
 	var base_y: float = -roundf(height) - bob
 	for row: int in 8:
 		var line: String = KNIGHT_ROWS[row]

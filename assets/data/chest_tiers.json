@@ -10,11 +10,11 @@
   "chest": {
     "bottom_offset": 15,
     "bump_decay": 5,
-    "bump_scale": 0.08,
-    "bump_lift": 2
+    "bump_scale": 0.2,
+    "bump_lift": 5
   },
   "magnet": {
-    "base_radius": 17,
+    "base_radius": 24,
     "radius_per_level": 5,
     "fly_speed": 2.4,
     "control_x_range": 30,

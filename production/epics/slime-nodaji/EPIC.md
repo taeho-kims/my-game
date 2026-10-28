@@ -33,7 +33,7 @@
 |---|-------|------|--------|-----|
 | 001 | 슬라임 필드와 코인 드롭 | Logic | Complete | N/A |
 | 002 | 영웅 강하·착지 충격·기사 자동전투 | Visual/Feel | Complete | N/A |
-| 003 | 커서 자석 수집 + 상자 5등급·배율 | Logic | Ready | N/A |
+| 003 | 커서 자석 수집 + 상자 5등급·배율 | Logic | Complete | N/A |
 | 004 | 시간제 한 판 + 상자 개봉·마지막 수확·정산 화면 | UI | Ready | N/A |
 | 005 | 스킬 트리 16노드 + 골드 소비 + 저장 | Integration | Ready | N/A |
 | 006 | 궁수·광전사 + 핫바 | Logic | Ready | N/A |

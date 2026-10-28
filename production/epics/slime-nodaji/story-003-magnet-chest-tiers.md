@@ -1,7 +1,7 @@
 # Story 003: 커서 자석 수집 + 상자 5등급·배율
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
@@ -85,7 +85,7 @@
 **Story Type**: Logic
 **Required evidence**: `tests/unit/chest/chest_tier_test.gd` (권고)
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created — `tests/unit/chest/chest_tier_test.gd`, `tests/integration/chest/chest_data_test.gd`
 
 ---
 
@@ -93,3 +93,12 @@
 
 - Depends on: `production/epics/slime-nodaji/story-001-slime-field.md`
 - Unlocks: `production/epics/slime-nodaji/story-004-run-timer-burst.md`
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-28
+**Criteria**: 7/7 passing (AC-6 효과음 음높이는 플레이 확인만 있고 자동 테스트 없음)
+**Deviations**: ADVISORY — `src/gameplay/chest/chest.gd` 상자 도형의 픽셀 좌표와 그림자 알파는 코드에 하드코딩 (스프라이트 모양 상수, 게임플레이 값은 모두 `assets/data/chest_tiers.json`). 의도적 변경 — 자석 기본 반경 17→24, 상자 튕김 0.08→0.2·들림 2→5 (`design/game-brief.md`에 기록)
+**Test Evidence**: `tests/unit/chest/chest_tier_test.gd` (30개), `tests/integration/chest/chest_data_test.gd` (6개) — qa.level minimal에서는 면제이지만 작성함. 스크린샷 스탬프는 `chest_tiers.json` 조정 이전 기준
+**Reviewed by**: self, no independent review

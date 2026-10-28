@@ -112,14 +112,16 @@ func test_data_harvest_lasts_five_seconds() -> void:
 	assert_float(harvest["start_max_wait"]).is_greater(0.0)
 
 
-func test_data_ring_spans_two_to_three_magnet_base_radii() -> void:
-	# Arrange — playtest value (story-004): the loot ring is 2x to 3x the base magnet radius wide
+func test_data_ring_is_wider_than_one_magnet_pass_so_it_takes_several_laps() -> void:
+	# Arrange — playtest values (story-004): inner radius 40, width 60 (outer 100); one lap of the
+	# base magnet sweeps its diameter (2 x radius) of the width
 	var ring: Dictionary = RunController.load_config(DATA_PATH)["ring"]
 	var base_radius: float = ChestTiers.load_config(CHEST_DATA_PATH)["magnet"]["base_radius"]
 
 	# Act / Assert
-	assert_float(ring["inner_radius"]).is_equal(2.0 * base_radius)
-	assert_float(float(ring["inner_radius"]) + float(ring["width"])).is_equal(3.0 * base_radius)
+	assert_float(ring["inner_radius"]).is_equal(40.0)
+	assert_float(ring["width"]).is_equal(60.0)
+	assert_float(ring["width"]).is_greater(2.0 * base_radius)
 	assert_float(ring["gem_band"]).is_between(0.0, 1.0)
 	assert_float(ring["spread_speed"]).is_greater(0.0)
 

@@ -29,8 +29,8 @@
     "blip": { "wave": "square", "chance": 0.4, "frequency_min": 700, "frequency_max": 1400, "duration": 0.04, "volume": 0.015 }
   },
   "ring": {
-    "inner_radius": 48,
-    "width": 24,
+    "inner_radius": 40,
+    "width": 60,
     "gem_band": 0.4,
     "spread_speed": 140
   },
@@ -47,9 +47,7 @@
     "time_bar_size": [120, 8],
     "tier_bar_size": [90, 5],
     "tier_label_width": 120,
-    "burst_label_y": -100,
-    "multiplier_label_y": -82,
-    "harvest_label_y": 34,
+    "ring_label_margin": 4,
     "loot_size": 5,
     "shake_decay_per_frame": 0.9,
     "sound_mix_rate": 22050,

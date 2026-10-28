@@ -534,6 +534,27 @@ func test_ring_radius_spans_the_ring_and_gems_use_only_the_outer_band() -> void:
 	assert_float(ChestBurst.ring_radius(config, "gem", 1.0)).is_equal_approx(72.0, 0.0001)
 
 
+func test_ring_top_y_is_the_chest_centre_minus_the_outer_radius() -> void:
+	# Arrange — chest centre y 180 + 10 = 190, outer radius 48 + 24 = 72
+	var config: Dictionary = _run_config()
+
+	# Act / Assert
+	assert_float(ChestBurst.ring_top_y(config, FIELD_SIZE)).is_equal_approx(118.0, 0.0001)
+	config["ring"]["width"] = 60.0
+	assert_float(ChestBurst.ring_top_y(config, FIELD_SIZE)).is_equal_approx(82.0, 0.0001)
+
+
+func test_ring_bottom_y_is_the_chest_centre_plus_the_outer_radius() -> void:
+	# Arrange — chest centre y 190, outer radius 72
+	var config: Dictionary = _run_config()
+
+	# Act / Assert
+	assert_float(ChestBurst.ring_bottom_y(config, FIELD_SIZE)).is_equal_approx(262.0, 0.0001)
+	config["ring"]["inner_radius"] = 40.0
+	config["ring"]["width"] = 60.0
+	assert_float(ChestBurst.ring_bottom_y(config, FIELD_SIZE)).is_equal_approx(290.0, 0.0001)
+
+
 func test_make_ring_loot_targets_the_angle_and_radius_around_the_chest_centre() -> void:
 	# Arrange
 	var config: Dictionary = _run_config()

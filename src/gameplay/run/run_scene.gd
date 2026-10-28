@@ -81,7 +81,7 @@ func _ready() -> void:
 	var ui: Dictionary = _run_config["ui"]
 	_hud = HUD_SCENE.instantiate()
 	add_child(_hud)
-	_hud.setup(ui, _size)
+	_hud.setup(ui, _size, ChestBurst.ring_top_y(_run_config, _size), ChestBurst.ring_bottom_y(_run_config, _size))
 	_hud.start_pressed.connect(_start_run)
 	_result_screen = RESULT_SCENE.instantiate()
 	add_child(_result_screen)

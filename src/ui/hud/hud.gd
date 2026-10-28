@@ -28,12 +28,15 @@ var _time_bar_width: float = 0.0
 var _tier_bar_width: float = 0.0
 
 
-## Builds the controls. `ui` is the "ui" section of run.json, `field_size` the viewport size.
+## Builds the controls. `ui` is the "ui" section of run.json, `field_size` the viewport size and
+## `ring_top_y` / `ring_bottom_y` the y of the top and bottom edge of the loot ring (ChestBurst.ring_top_y,
+## ring_bottom_y): the tier and gold labels sit ui.ring_label_margin above the top edge, the harvest
+## timer and bonus the same margin below the bottom edge.
 ##
 ## State keys of `show_state`: gold (int), collected (int), phase (RunController.Phase), time_ratio and
 ## time_left (run time), low_time (bool), tier_name, tier_color (Color), tier_ratio (0..1), opened (bool),
 ## shown_gold (float), multiplier (float), harvest_left (float), harvest_bonus (int).
-func setup(ui: Dictionary, field_size: Vector2) -> void:
+func setup(ui: Dictionary, field_size: Vector2, ring_top_y: float, ring_bottom_y: float) -> void:
 	_ui = ui
 	_text = ui["text"]
 	var margin: float = ui["margin"]
@@ -56,12 +59,15 @@ func setup(ui: Dictionary, field_size: Vector2) -> void:
 	var bar_pos := Vector2(field_size.x - margin - _tier_bar_width, margin + 15.0)
 	_tier_back = _make_rect(bar_pos, Vector2(_tier_bar_width, float(bar_size[1])), _color("bar_back"))
 	_tier_fill = _make_rect(bar_pos, Vector2(0.0, float(bar_size[1])), Color.WHITE)
-	_burst_label = _make_label(big_size, field_size.x, HORIZONTAL_ALIGNMENT_CENTER,
-			Vector2(0.0, field_size.y / 2.0 + float(ui["burst_label_y"])))
-	_multiplier_label = _make_label(font_size, field_size.x, HORIZONTAL_ALIGNMENT_CENTER,
-			Vector2(0.0, field_size.y / 2.0 + float(ui["multiplier_label_y"])))
+	# The labels over the chest stack upwards from just above the loot ring: tier and multiplier right
+	# above it (ring_label_margin apart), then the base gold. The harvest timer and bonus sit below it.
+	var margin_ring: float = ui["ring_label_margin"]
+	_multiplier_label = _make_label(font_size, field_size.x, HORIZONTAL_ALIGNMENT_CENTER, Vector2.ZERO)
+	_multiplier_label.position.y = ring_top_y - margin_ring - _text_height(_multiplier_label, 1)
+	_burst_label = _make_label(big_size, field_size.x, HORIZONTAL_ALIGNMENT_CENTER, Vector2.ZERO)
+	_burst_label.position.y = _multiplier_label.position.y - _text_height(_burst_label, 1)
 	_harvest_label = _make_label(big_size, field_size.x, HORIZONTAL_ALIGNMENT_CENTER,
-			Vector2(0.0, float(ui["harvest_label_y"])))
+			Vector2(0.0, ring_bottom_y + margin_ring))
 	_harvest_label.add_theme_color_override("font_color", _color("bonus"))
 	_start_button = Button.new()
 	_start_button.text = _text["start"]
@@ -121,6 +127,17 @@ func show_state(state: Dictionary) -> void:
 
 func _color(key: String) -> Color:
 	return Color.html(_ui["colors"][key])
+
+
+## Height of `lines` text lines in the label's font (measured with placeholder text, then cleared).
+func _text_height(label: Label, lines: int) -> float:
+	var placeholder: PackedStringArray = []
+	for i: int in lines:
+		placeholder.append("0")
+	label.text = "\n".join(placeholder)
+	var height: float = label.get_minimum_size().y
+	label.text = ""
+	return height
 
 
 func _make_rect(position: Vector2, rect_size: Vector2, color: Color) -> ColorRect:

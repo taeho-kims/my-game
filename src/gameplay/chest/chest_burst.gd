@@ -119,6 +119,19 @@ static func ring_radius(config: Dictionary, kind: String, roll: float) -> float:
 	return lerpf(low, outer, roll)
 
 
+## Y of the top edge of the loot ring: the open chest's centre y minus the outer radius
+## (ring.inner_radius + ring.width). The HUD labels over the chest are placed relative to it.
+static func ring_top_y(config: Dictionary, field_size: Vector2) -> float:
+	var ring: Dictionary = config["ring"]
+	return chest_target(config, field_size).y - float(ring["inner_radius"]) - float(ring["width"])
+
+
+## Y of the bottom edge of the loot ring: the open chest's centre y plus the outer radius.
+static func ring_bottom_y(config: Dictionary, field_size: Vector2) -> float:
+	var ring: Dictionary = config["ring"]
+	return chest_target(config, field_size).y + float(ring["inner_radius"]) + float(ring["width"])
+
+
 ## A new loot coin that pops out of the open chest and flies to a point on the ring around it:
 ## angle = `angle_roll` * TAU, radius from `ring_radius`. The flight lasts distance / ring.spread_speed.
 ## Besides the common keys it carries "origin", "target", "elapsed", "duration" and "height".

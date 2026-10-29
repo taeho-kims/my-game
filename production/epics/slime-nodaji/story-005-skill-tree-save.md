@@ -1,12 +1,12 @@
 # Story 005: 스킬 트리 16노드 + 골드 소비 + 저장
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Integration
 > **Estimate**: L
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: 2026-10-28
+> **Last Updated**: 2026-10-29
 
 ## Context
 
@@ -47,6 +47,7 @@
 - 노드 정의는 `assets/data/skill_tree.json`에, 능력치 계산은 별도 클래스에 두어 단위 테스트가 가능하게 한다 (싱글톤 대신 의존성 주입).
 - 저장 형식에는 버전 필드를 둔다. 하위 키 구성·마이그레이션·모르는 키 보존은 `design/game-brief.md`의 "확장 설계 원칙 — 저장 데이터"를 따른다 (2026-10-27 추가). 1단계의 마이그레이션은 버전 1 하나뿐이어도 버전별 함수 자리를 둔다.
 - **단위 변환 (2026-10-27):** 착지 범위와 자석 반경은 공간 단위 값이라 1280×720 기준 프로토타입 값의 0.5배다 (`46+7×land` → `23+3.5×land`, `34+10×magnet` → `17+5×magnet`). 피해·시간·배율 등 비공간 값은 그대로다. 단, 자석 기본 반경은 플레이 테스트로 17에서 24로 올려 확정했다 (`design/game-brief.md`의 "손맛 조정으로 프로토타입과 달라진 값").
+- 능력치 계산(`PlayerStats`)은 이미 각 시스템이 가진 공식 함수를 불러 쓰고, 어느 시스템도 갖지 않은 값(화살, 황금, 비)만 `assets/data/skill_tree.json`의 `stats`에 둔다. 자석 장갑 노드 설명의 증가량도 같은 이유로 `+10`에서 `+5`로 옮겼다.
 
 ---
 
@@ -65,6 +66,7 @@
 - src/ui/skill_tree/skill_tree_screen.gd (+ .tscn)
 - src/gameplay/run/run_scene.gd — loads/saves the SaveData, opens the tree, applies the run result
 - assets/data/skill_tree.json — 16 nodes, stats, save settings, tree layout, texts
+- tests/integration/skill-tree/skill_tree_save_test.gd (+ .uid) — 16 tests (written although qa.level is minimal, at the user's request)
 
 ## QA Test Cases
 
@@ -77,7 +79,7 @@
 **Story Type**: Integration
 **Required evidence**: `tests/integration/skill-tree/skill_tree_save_test.gd` (권고) + 트리 화면 스크린샷(필수) → `production/qa/evidence/`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created — `tests/integration/skill-tree/skill_tree_save_test.gd`, `production/qa/evidence/story-005-skill-tree-save/` (트리 화면 스크린샷 1280×720, `stamp.txt`)
 
 ---
 
@@ -85,3 +87,12 @@
 
 - Depends on: `production/epics/slime-nodaji/story-004-run-timer-burst.md`
 - Unlocks: `production/epics/slime-nodaji/story-007-run-events.md`
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-29
+**Criteria**: 10/10 passing (트리 구매, 저장 복원, 깨진·없는 저장 파일, 초기화 두 번 누르기, 레벨의 능력치 반영은 사용자가 직접 플레이로 확인)
+**Deviations**: ADVISORY — `src/ui/skill_tree/skill_tree_screen.gd`의 화면 배치 상수(골드 라벨 너비, 간격, 테두리·모서리)와 `src/meta/skill_tree.gd`의 `format_amount` 표시 단위는 코드에 하드코딩 (게임플레이 값 아님; 게임플레이 값은 모두 `assets/data/skill_tree.json`). 참고 — 자석 장갑 노드 설명의 증가량을 640×360 기준에 맞춰 `+10`에서 `+5`로 옮김.
+**Test Evidence**: `tests/integration/skill-tree/skill_tree_save_test.gd` (16개, qa.level minimal에서는 면제이지만 작성함; 저장 코드를 일부러 망가뜨려 관련 테스트가 실패하는 것을 확인), `production/qa/evidence/story-005-skill-tree-save/` (트리 화면 스크린샷, 스탬프 일치)
+**Reviewed by**: self, no independent review (엔진 API 점검은 별도로 실행, 지적은 반영)

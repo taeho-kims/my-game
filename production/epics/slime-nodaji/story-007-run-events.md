@@ -1,7 +1,7 @@
 # Story 007: 이벤트 4종 (황금 슬라임·슬라임 비·보물 고블린·대왕 푸딩)
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
@@ -96,3 +96,12 @@ tests/unit/events/events_test.gd
 
 - Depends on: `production/epics/slime-nodaji/story-001-slime-field.md`, `production/epics/slime-nodaji/story-002-hero-drop-combat.md`, `production/epics/slime-nodaji/story-005-skill-tree-save.md`
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-29
+**Criteria**: 8/8 passing (none deferred)
+**Deviations**: `event_banner.gd` and edits to existing hero/slime files beyond the original file list (advisory, listed under `## Files`); values the story did not give (fall gravity, goblin flee speed, golden radius, ...) are prototype x0.5 in `run_events.json`. Golden slimes appear at `stats.golden_base` even without the node (prototype behavior, confirmed by the user). The evidence stamp predates the golden-chance change (no visual effect).
+**Test Evidence**: `tests/unit/events/events_test.gd` (34 tests, full suite 173 passing); screenshots in `production/qa/evidence/story-007-run-events/`; banners, golden slime, goblin and boss confirmed by the user in a real run.
+**Reviewed by**: self, no independent review

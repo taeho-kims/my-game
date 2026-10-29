@@ -1,0 +1,12 @@
+Reviewed-Content-Hash: src/gameplay/hero/hero.gd 42ceea5cdccfc64498912e040a118399ddbee5f5
+Reviewed-Content-Hash: src/gameplay/hero/hero_squad.gd 18386311a4a98e4937d31eee43d1afdc5e97067e
+Reviewed-Content-Hash: src/gameplay/run/run_scene.gd 038f1a091ab689f7cded6664fee18345d9ef3797
+Reviewed-Content-Hash: src/gameplay/slime/slime_field_demo.gd eaef5857f47a6b91b7638d99170adc70d8c329d8
+Reviewed-Content-Hash: assets/data/hero_types.json 98e74b971f2e76fbb2b5132171b563ea12e01341
+Reviewed-Content-Hash: src/gameplay/hero/archer.gd f19ddd167fa50906f870407623a9116a9205fd6d
+Reviewed-Content-Hash: src/gameplay/hero/arrow.gd 846a3e061fe1f3c946dea1013939ede1c01e0b08
+Reviewed-Content-Hash: src/gameplay/hero/berserker.gd 7647296df06ab3ce14917216b1b81f0b781fcff8
+Reviewed-Content-Hash: src/gameplay/hero/hero_roster.gd 26b0b65088624aac8f9b11c2e5bf504fc4b7f8b1
+Reviewed-Content-Hash: src/gameplay/hero/hero_types.gd 7bb9e158f0e00b90ca4b13d8e8c02fcc7f885520
+Reviewed-Content-Hash: src/ui/hotbar/hotbar.gd f0ff9e1b65e2379add7a9bd55d04aeb1dd99d7c8
+Reviewed-Content-Hash: src/ui/hotbar/hotbar.tscn 7982a840c07ee444d268bab2c3b1a2cf3eb16621

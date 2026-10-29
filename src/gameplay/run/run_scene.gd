@@ -13,9 +13,11 @@ extends Node2D
 const RUN_CONFIG_PATH: String = "res://assets/data/run.json"
 const SLIME_CONFIG_PATH: String = "res://assets/data/slime_field.json"
 const HERO_CONFIG_PATH: String = "res://assets/data/hero_knight.json"
+const TYPES_CONFIG_PATH: String = "res://assets/data/hero_types.json"
 const CHEST_CONFIG_PATH: String = "res://assets/data/chest_tiers.json"
 const TREE_CONFIG_PATH: String = "res://assets/data/skill_tree.json"
 const HUD_SCENE: PackedScene = preload("res://src/ui/hud/hud.tscn")
+const HOTBAR_SCENE: PackedScene = preload("res://src/ui/hotbar/hotbar.tscn")
 const RESULT_SCENE: PackedScene = preload("res://src/ui/result/result_screen.tscn")
 const TREE_SCENE: PackedScene = preload("res://src/ui/skill_tree/skill_tree_screen.tscn")
 const GRASS_COLOR: Color = Color("#4f8a3c")
@@ -34,6 +36,7 @@ const SHAKE_EPSILON: float = 0.05
 var _run_config: Dictionary = {}
 var _slime_config: Dictionary = {}
 var _hero_config: Dictionary = {}
+var _types_config: Dictionary = {}
 var _chest_config: Dictionary = {}
 var _tree_config: Dictionary = {}
 var _save: SaveData
@@ -47,6 +50,7 @@ var _magnet: Magnet
 var _view: RunView
 var _controller: RunController
 var _hud: RunHud
+var _hotbar: Hotbar
 var _result_screen: ResultScreen
 var _tree_screen: SkillTreeScreen
 var _sfx_player: AudioStreamPlayer
@@ -61,9 +65,10 @@ func _ready() -> void:
 	_run_config = RunController.load_config(RUN_CONFIG_PATH)
 	_slime_config = SlimeField.load_config(SLIME_CONFIG_PATH)
 	_hero_config = HeroSquad.load_config(HERO_CONFIG_PATH)
+	_types_config = HeroTypes.load_config(TYPES_CONFIG_PATH)
 	_chest_config = ChestTiers.load_config(CHEST_CONFIG_PATH)
 	_tree_config = SkillTree.load_config(TREE_CONFIG_PATH)
-	if _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() \
+	if _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() or _types_config.is_empty() \
 			or _chest_config.is_empty() or _tree_config.is_empty():
 		return
 	_apply_user_args()
@@ -128,9 +133,18 @@ func _start_run() -> void:
 	_field = SlimeField.new()
 	_world.add_child(_field)
 	_field.setup(_slime_config, _rng, _size, runs, _level("density"), _level("coin"))
-	_squad.setup(_hero_config, _slime_config, _field, _rng, _size, runs,
-			{"hero": _level("hero"), "land": _level("land"), "spd": _level("spd"), "dmg": _level("dmg")})
+	# Hero counts and arrows per volley come from PlayerStats, the one place that turns levels into stats.
+	var stats: Dictionary = PlayerStats.compute(_save.levels, _hero_config, _slime_config, _chest_config,
+			_run_config, _tree_config)
+	_squad.setup(_hero_config, _types_config, _slime_config, _field, _rng, _size, runs,
+			{"land": _level("land"), "spd": _level("spd"), "dmg": _level("dmg")}, stats)
 	_squad.shake_changed.connect(func(offset: Vector2) -> void: _squad_shake = offset)
+	# Just below the result screen in the tree, so a result panel covers the (disabled) hotbar.
+	_hotbar = HOTBAR_SCENE.instantiate()
+	add_child(_hotbar)
+	move_child(_hotbar, _result_screen.get_index())
+	_hotbar.setup(_types_config, _squad.roster, _size)
+	_hotbar.type_requested.connect(func(type: String) -> void: _squad.roster.select(type))
 	_view = RunView.new()
 	_world.add_child(_view)
 	_chest = Chest.new()
@@ -158,16 +172,18 @@ func _start_run() -> void:
 
 
 func _clear_run() -> void:
-	for node: Node in [_world, _controller]:
+	for node: Node in [_world, _controller, _hotbar]:
 		if node != null:
 			node.queue_free()
 	_world = null
 	_controller = null
+	_hotbar = null
 
 
 func _on_phase_changed(phase: int) -> void:
 	match phase:
 		RunController.Phase.BURST:
+			_squad.roster.disable()
 			# The field and the knights freeze; ground coins vanish so the magnet takes nothing new
 			# (coins already flying keep going and count, see RunController).
 			_field.process_mode = Node.PROCESS_MODE_DISABLED

@@ -1,17 +1,16 @@
 class_name HeroSquad
 extends Node2D
-## Owns one run's knights: the remaining-knights count, click-to-drop, the landing preview,
-## landing impact application and damage-number popups. Wires Hero and LandingImpact to a
+## Owns one run's heroes (knights, archers, berserkers): the remaining-heroes roster, click-to-drop of
+## the selected type, the landing preview, landing impact application, arrows and damage-number popups. Wires Hero and LandingImpact to a
 ## SlimeField. Add this node BEFORE the SlimeField in the tree so the preview is drawn under
 ## the slimes and knights (effects and popups draw on top via z_index).
 ##
 ## Implements design/game-brief.md (MVP 1) via production/epics/slime-nodaji/story-002-hero-drop-combat.md.
+## Story-006 adds the archer and berserker types and the HeroRoster behind the hotbar.
 ## Values ported from slime-nodaji.html (stats, pointerdown, land, hurt, draw landing ghost).
 ## Config, field, randomness and levels are injected through `setup` (no singletons).
 
-## Emitted when the remaining-knights count changes.
-signal remaining_changed(remaining: int)
-## Emitted when a knight starts falling.
+## Emitted when a hero starts falling.
 signal hero_dropped(hero: Hero)
 ## Emitted at the landing moment, after effects and damage were applied.
 signal landed(impact_pos: Vector2, impact_radius: float)
@@ -22,10 +21,12 @@ signal shake_changed(offset: Vector2)
 
 const DASH_PHASE_FACTOR: float = 2.0
 
-## Knights still available to drop.
-var remaining: int = 0
+## Heroes still available to drop, per type, and the selected type (the hotbar reads and drives it).
+var roster: HeroRoster
 
 var _config: Dictionary = {}
+var _types_config: Dictionary = {}
+var _arrows: int = 1
 var _field: SlimeField
 var _rng: RandomNumberGenerator
 var _impact: LandingImpact
@@ -67,12 +68,15 @@ static func squad_size(config: Dictionary, hero_level: int) -> int:
 	return int(squad["base_count"]) + int(squad["count_per_hero_level"]) * hero_level
 
 
-## Prepares the squad. `slime_config` is the slime_field config (for field bounds and the run
-## scale), `field_size` the viewport size, `runs` the completed runs, `levels` a Dictionary with
-## int entries "hero", "land", "spd", "dmg".
-func setup(config: Dictionary, slime_config: Dictionary, field: SlimeField, rng: RandomNumberGenerator,
-		field_size: Vector2, runs: int, levels: Dictionary) -> void:
+## Prepares the squad. `config` is hero_knight.json, `types_config` hero_types.json, `slime_config`
+## the slime_field config (for field bounds and the run scale), `field_size` the viewport size, `runs`
+## the completed runs, `levels` a Dictionary with int entries "land", "spd", "dmg", and `stats` the
+## PlayerStats of the run (the hero counts "knight", "archer", "barb" and the "arrows" per volley).
+func setup(config: Dictionary, types_config: Dictionary, slime_config: Dictionary, field: SlimeField,
+		rng: RandomNumberGenerator, field_size: Vector2, runs: int, levels: Dictionary, stats: Dictionary) -> void:
 	_config = config
+	_types_config = types_config
+	_arrows = int(stats["arrows"])
 	_field = field
 	_rng = rng
 	_land_level = levels["land"]
@@ -81,7 +85,9 @@ func setup(config: Dictionary, slime_config: Dictionary, field: SlimeField, rng:
 	_run_scale = SlimeField.run_scale(slime_config, runs)
 	_drop_top = float(slime_config["field"]["top"]) + float(config["squad"]["drop_margin_top"])
 	_drop_bottom = field_size.y - float(slime_config["field"]["bottom_margin"])
-	remaining = squad_size(config, levels["hero"])
+	var order: Array[String] = []
+	order.assign(types_config["order"])
+	roster = HeroRoster.from_stats(order, stats)
 
 	_impact = LandingImpact.new()
 	_impact.z_index = 1
@@ -93,20 +99,24 @@ func setup(config: Dictionary, slime_config: Dictionary, field: SlimeField, rng:
 	_popup_layer.z_index = 1
 	add_child(_popup_layer)
 	_popup_layer.draw.connect(_draw_popups)
-	remaining_changed.emit(remaining)
 
 
-## Drops one knight at `point` (y clamped to the field). Returns false when none are left.
+## Drops one hero of the roster's selected type at `point` (y clamped to the field). Returns false when
+## none are left or the roster is disabled.
 func drop_hero(point: Vector2) -> bool:
-	if remaining <= 0:
+	var type: String = roster.take()
+	if type.is_empty():
 		return false
-	remaining -= 1
-	var hero := Hero.new()
+	var hero: Hero = _new_hero(type)
 	_field.add_child(hero)
-	hero.setup(_config, _field.slimes, _rng, _clamp_to_field(point), _dmg_level, _spd_level)
+	hero.setup(_config, _field.slimes, _rng, _clamp_to_field(point), _dmg_level, _spd_level,
+			_types_config["types"][type])
 	hero.landed.connect(_on_hero_landed)
 	hero.hit_dealt.connect(_on_hero_hit_dealt)
-	remaining_changed.emit(remaining)
+	var archer := hero as Archer
+	if archer != null:
+		archer.arrows_per_volley = _arrows
+		archer.arrow_shot.connect(_on_arrow_shot)
 	hero_dropped.emit(hero)
 	return true
 
@@ -156,6 +166,16 @@ func _hit(slime: Slime, amount: float) -> void:
 	slime_hit.emit(slime, amount)
 
 
+## A new hero node of the given type id (knight, archer, barb).
+func _new_hero(type: String) -> Hero:
+	match type:
+		"archer":
+			return Archer.new()
+		"barb":
+			return Berserker.new()
+	return Hero.new()
+
+
 func _on_hero_landed(hero: Hero) -> void:
 	var impact_radius: float = LandingImpact.radius(_config, _land_level)
 	_impact.trigger(hero.position, impact_radius, LandingImpact.shake_amplitude(_config, _land_level))
@@ -169,9 +189,16 @@ func _on_hero_hit_dealt(target: Slime, amount: float) -> void:
 	_hit(target, amount)
 
 
+func _on_arrow_shot(target: Slime, origin: Vector2, amount: float) -> void:
+	var arrow := Arrow.new()
+	_field.add_child(arrow)
+	arrow.setup(_types_config["types"]["archer"]["arrow"], origin, target, amount)
+	arrow.hit.connect(_hit)
+
+
 ## Dashed landing-range ellipse under the pointer.
 func _draw() -> void:
-	if _config.is_empty() or remaining <= 0 or not _pointer_inside:
+	if _config.is_empty() or roster.total_remaining() <= 0 or not roster.enabled or not _pointer_inside:
 		return
 	var preview: Dictionary = _config["preview"]
 	var color := Color(Color.html(preview["color"]), float(preview["alpha"]))

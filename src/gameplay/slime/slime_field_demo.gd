@@ -8,6 +8,7 @@ extends Node2D
 
 const SLIME_CONFIG_PATH: String = "res://assets/data/slime_field.json"
 const HERO_CONFIG_PATH: String = "res://assets/data/hero_knight.json"
+const TYPES_CONFIG_PATH: String = "res://assets/data/hero_types.json"
 const CHEST_CONFIG_PATH: String = "res://assets/data/chest_tiers.json"
 const GRASS_COLOR: Color = Color("#4f8a3c")
 const AUTO_DROP_MARGIN: Vector2 = Vector2(20.0, 40.0)
@@ -45,8 +46,9 @@ var _auto_drop_timer: float = 0.0
 func _ready() -> void:
 	var slime_config: Dictionary = SlimeField.load_config(SLIME_CONFIG_PATH)
 	var hero_config: Dictionary = HeroSquad.load_config(HERO_CONFIG_PATH)
+	var types_config: Dictionary = HeroTypes.load_config(TYPES_CONFIG_PATH)
 	var chest_config: Dictionary = ChestTiers.load_config(CHEST_CONFIG_PATH)
-	if slime_config.is_empty() or hero_config.is_empty() or chest_config.is_empty():
+	if slime_config.is_empty() or hero_config.is_empty() or types_config.is_empty() or chest_config.is_empty():
 		return
 	_rng.randomize()
 	var size: Vector2 = get_viewport_rect().size
@@ -56,8 +58,9 @@ func _ready() -> void:
 	_field = SlimeField.new()
 	add_child(_field)
 	_field.setup(slime_config, _rng, size, runs, density_level, coin_level)
-	_squad.setup(hero_config, slime_config, _field, _rng, size, runs,
-			{"hero": hero_level, "land": land_level, "spd": spd_level, "dmg": dmg_level})
+	_squad.setup(hero_config, types_config, slime_config, _field, _rng, size, runs,
+			{"land": land_level, "spd": spd_level, "dmg": dmg_level},
+			{"knight": HeroSquad.squad_size(hero_config, hero_level), "archer": 0, "barb": 0, "arrows": 1})
 	_squad.shake_changed.connect(_on_shake_changed)
 	# The chest goes after the field so it draws over the slimes; the magnet last so its ring
 	# and the flying coins draw on top.
@@ -77,7 +80,7 @@ func _process(delta: float) -> void:
 	if _field == null:
 		return
 	_label.text = "knights %d  slimes %d  coins %d  chest %d (tier %d, payout %d)  runs %d" % [
-			_squad.remaining, _field.slimes.size(), _field.coins.size(), roundi(_chest.value),
+			_squad.roster.total_remaining(), _field.slimes.size(), _field.coins.size(), roundi(_chest.value),
 			_chest.tier(), _chest.total(), runs]
 	if auto_drop_interval > 0.0:
 		_auto_drop_timer -= delta

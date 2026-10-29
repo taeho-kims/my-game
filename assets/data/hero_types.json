@@ -1,0 +1,132 @@
+{
+  "order": ["knight", "archer", "barb"],
+  "types": {
+    "knight": {
+      "name": "기사",
+      "sprite": {
+        "scale": 2,
+        "rows": [
+          "...hhh..",
+          "..hhhhh.",
+          "..hvvvh.",
+          "...sss..",
+          "w.aaaaa.",
+          "wbaaaaab",
+          "..aaaa..",
+          "..l..l.."
+        ],
+        "palette": {
+          "h": "#c3cbd6",
+          "v": "#3d4350",
+          "s": "#f1c49a",
+          "a": "#3f6fd8",
+          "w": "#eef3f8",
+          "b": "#2f55ad",
+          "l": "#2c2f3a"
+        }
+      }
+    },
+    "archer": {
+      "name": "궁수",
+      "range": 85,
+      "chase_speed": 35,
+      "cooldown_multiplier": 1.35,
+      "damage_multiplier": 0.9,
+      "shot_origin_y": -7,
+      "arrow": {
+        "speed": 210,
+        "hit_distance": 4,
+        "aim_height_ratio": 0.5,
+        "length": 5,
+        "width": 1,
+        "color": "#e8dcc0"
+      },
+      "sprite": {
+        "scale": 2,
+        "rows": [
+          "...ggg..",
+          "..ggggg.",
+          "..gssse.",
+          "...sss.e",
+          "..ttttte",
+          ".tttttte",
+          "..tttt.e",
+          "..l..l.."
+        ],
+        "palette": {
+          "g": "#3f8a3a",
+          "s": "#f1c49a",
+          "t": "#5fae4a",
+          "e": "#9a6a35",
+          "l": "#3b2a1f"
+        }
+      }
+    },
+    "barb": {
+      "name": "광전사",
+      "range_base": 11,
+      "chase_speed": 40,
+      "cooldown_multiplier": 1.25,
+      "slash": {
+        "radius": 22,
+        "damage_multiplier": 1.1,
+        "swing_time": 0.25,
+        "ring_life": 0.2,
+        "arc_radius": 15,
+        "arc_center_y": -5,
+        "arc_width": 1.5,
+        "arc_span": 4,
+        "arc_spin": 30,
+        "color": "#f4e7c9b3"
+      },
+      "sprite": {
+        "scale": 2,
+        "rows": [
+          "..rrrr..",
+          ".rrrrrr.",
+          ".rsssr..",
+          "..sss...",
+          "xmssssm.",
+          "xmmkkmm.",
+          "x.ffff..",
+          "..s..s.."
+        ],
+        "palette": {
+          "r": "#d2552f",
+          "s": "#e9b07f",
+          "m": "#b97a4f",
+          "k": "#5a3a22",
+          "f": "#7a4b2a",
+          "x": "#c9d1db"
+        }
+      }
+    }
+  },
+  "hotbar": {
+    "margin": 6,
+    "gap": 4,
+    "card_size": [76, 26],
+    "icon_scale": 2,
+    "icon_box": 20,
+    "icon_inset": 3,
+    "name_x": 28,
+    "count_right_inset": 5,
+    "font_size": 10,
+    "outline_size": 3,
+    "border_width": 2,
+    "disabled_alpha": 0.4,
+    "colors": {
+      "card_back": "#57402e",
+      "card_border": "#2a1d15",
+      "selected_back": "#6b4d36",
+      "selected_border": "#f2c14e",
+      "icon_back": "#2a1d15",
+      "name": "#ffffff",
+      "count": "#f2c14e",
+      "text_outline": "#101010"
+    },
+    "text": {
+      "tooltip": "%d번 키"
+    }
+  }
+}

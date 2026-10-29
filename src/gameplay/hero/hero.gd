@@ -5,6 +5,8 @@ extends Node2D
 ##
 ## Implements design/game-brief.md (MVP 1) via production/epics/slime-nodaji/story-002-hero-drop-combat.md.
 ## Values ported from slime-nodaji.html (pointerdown, update hero section, drawHero, SPR.knight).
+## Archer and Berserker (story-006) extend this class and override the per-type hooks below
+## (`_chase_speed`, `_range_to`, `_attack`, `_draw_attack`); the sprite comes from hero_types.json.
 ## The node position is the knight's ground point (feet); the body is drawn above it.
 ##
 ## States: FALLING -> GROUNDED (once, when the height reaches zero; emits `landed`).
@@ -17,26 +19,6 @@ signal hit_dealt(target: Slime, amount: float)
 
 enum State { FALLING, GROUNDED }
 
-const SPRITE_SCALE: float = 2.0
-const KNIGHT_ROWS: Array[String] = [
-	"...hhh..",
-	"..hhhhh.",
-	"..hvvvh.",
-	"...sss..",
-	"w.aaaaa.",
-	"wbaaaaab",
-	"..aaaa..",
-	"..l..l..",
-]
-const KNIGHT_PALETTE: Dictionary = {
-	"h": Color("#c3cbd6"),
-	"v": Color("#3d4350"),
-	"s": Color("#f1c49a"),
-	"a": Color("#3f6fd8"),
-	"w": Color("#eef3f8"),
-	"b": Color("#2f55ad"),
-	"l": Color("#2c2f3a"),
-}
 const SHADOW_COLOR: Color = Color(20.0 / 255.0, 40.0 / 255.0, 15.0 / 255.0, 0.35)
 const SWING_COLOR: Color = Color(1.0, 1.0, 1.0, 0.8)
 const SWING_CENTER: Vector2 = Vector2(7.0, -8.0)
@@ -48,6 +30,8 @@ var state: State = State.FALLING
 var height: float = 0.0
 
 var _config: Dictionary = {}
+var _type_config: Dictionary = {}
+var _palette: Dictionary = {}
 var _slimes: Array[Slime] = []
 var _rng: RandomNumberGenerator
 var _dmg_level: int = 0
@@ -81,11 +65,28 @@ static func attack_range(config: Dictionary, slime_radius: float) -> float:
 	return float(config["combat"]["range_base"]) + slime_radius
 
 
+## The slime nearest to `from` that is not a key of `excluded`, or null when there is none.
+static func nearest_slime(slimes: Array[Slime], from: Vector2, excluded: Dictionary = {}) -> Slime:
+	var best: Slime = null
+	var best_distance: float = INF
+	for slime: Slime in slimes:
+		if excluded.has(slime):
+			continue
+		var distance: float = from.distance_to(slime.position)
+		if distance < best_distance:
+			best_distance = distance
+			best = slime
+	return best
+
+
 ## Starts the drop at `ground_pos`. `slimes` is the live slime list of the field (read each
-## frame, never modified here); levels come from the skill tree.
+## frame, never modified here); levels come from the skill tree; `type_config` is this hero type's
+## entry of hero_types.json (types.<id>).
 func setup(config: Dictionary, slimes: Array[Slime], rng: RandomNumberGenerator, ground_pos: Vector2,
-		dmg_level: int, spd_level: int) -> void:
+		dmg_level: int, spd_level: int, type_config: Dictionary) -> void:
 	_config = config
+	_type_config = type_config
+	_palette = HeroTypes.palette(type_config["sprite"])
 	_slimes = slimes
 	_rng = rng
 	_dmg_level = dmg_level
@@ -127,28 +128,36 @@ func _fight(delta: float) -> void:
 	var to_target: Vector2 = target.position - position
 	var distance: float = to_target.length()
 	_flip = to_target.x < 0.0
-	if distance > attack_range(_config, target.radius):
-		position += to_target / distance * float(_config["combat"]["chase_speed"]) * delta
+	if distance > _range_to(target):
+		position += to_target / distance * _chase_speed() * delta
 		_walking = true
 		return
 	_walking = false
 	if _cooldown <= 0.0:
-		var combat: Dictionary = _config["combat"]
-		var roll: float = _rng.randf_range(combat["damage_variance_min"], combat["damage_variance_max"])
-		_cooldown = attack_cooldown(_config, _spd_level)
-		_swing_left = combat["swing_time"]
-		hit_dealt.emit(target, attack_damage(_config, _dmg_level, roll))
+		_attack(target)
+
+
+## Chase speed in px/s.
+func _chase_speed() -> float:
+	return float(_config["combat"]["chase_speed"])
+
+
+## Distance at which this hero attacks `target`.
+func _range_to(target: Slime) -> float:
+	return attack_range(_config, target.radius)
+
+
+## Performs one attack on `target` (in range, cooldown over) and restarts the cooldown.
+func _attack(target: Slime) -> void:
+	var combat: Dictionary = _config["combat"]
+	var roll: float = _rng.randf_range(combat["damage_variance_min"], combat["damage_variance_max"])
+	_cooldown = attack_cooldown(_config, _spd_level)
+	_swing_left = combat["swing_time"]
+	hit_dealt.emit(target, attack_damage(_config, _dmg_level, roll))
 
 
 func _nearest_slime() -> Slime:
-	var best: Slime = null
-	var best_distance: float = INF
-	for slime: Slime in _slimes:
-		var distance: float = position.distance_to(slime.position)
-		if distance < best_distance:
-			best_distance = distance
-			best = slime
-	return best
+	return nearest_slime(_slimes, position)
 
 
 func _draw() -> void:
@@ -166,19 +175,16 @@ func _draw() -> void:
 		var walk: Dictionary = _config["walk"]
 		bob = absf(sin(_bob_time * float(walk["bob_frequency"]))) * float(walk["bob_height"])
 	var base_y: float = -roundf(height) - bob
-	for row: int in 8:
-		var line: String = KNIGHT_ROWS[row]
-		for col: int in 8:
-			var key: String = line[col]
-			if key == ".":
-				continue
-			var cx: int = 7 - col if _flip else col
-			draw_rect(Rect2(roundf(float(cx - 4) * SPRITE_SCALE), base_y + float(row - 8) * SPRITE_SCALE,
-					SPRITE_SCALE, SPRITE_SCALE), KNIGHT_PALETTE[key])
-
+	var sprite: Dictionary = _type_config["sprite"]
+	HeroTypes.draw_sprite(self, sprite, _palette, Vector2(0.0, base_y), float(sprite["scale"]), _flip)
 	if _swing_left > 0.0:
-		var dir: float = -1.0 if _flip else 1.0
-		var start_angle: float = -1.2 if dir > 0.0 else PI - 0.4
-		var end_angle: float = 0.4 if dir > 0.0 else PI + 1.2
-		draw_arc(Vector2(SWING_CENTER.x * dir, base_y + SWING_CENTER.y), SWING_RADIUS, start_angle, end_angle,
-				8, SWING_COLOR, SWING_WIDTH)
+		_draw_attack(base_y)
+
+
+## Draws the attack effect while a swing is running; `base_y` is the sprite's feet line.
+func _draw_attack(base_y: float) -> void:
+	var dir: float = -1.0 if _flip else 1.0
+	var start_angle: float = -1.2 if dir > 0.0 else PI - 0.4
+	var end_angle: float = 0.4 if dir > 0.0 else PI + 1.2
+	draw_arc(Vector2(SWING_CENTER.x * dir, base_y + SWING_CENTER.y), SWING_RADIUS, start_angle, end_angle,
+			8, SWING_COLOR, SWING_WIDTH)

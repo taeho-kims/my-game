@@ -9,6 +9,8 @@ extends Node2D
 ## Dev options: the exports below, plus the command-line user args (after `--`):
 ##   --run-seconds=N   overrides the run length            --autostart   starts without the button
 ##   --auto-drop=N     drops a knight every N seconds
+##   --force-events    all four run events fire early (rain 2 s, goblin 4 s, boss 6 s, golden slimes frequent),
+##                     whatever the skill tree level (assets/data/run_events.json "force")
 
 const RUN_CONFIG_PATH: String = "res://assets/data/run.json"
 const SLIME_CONFIG_PATH: String = "res://assets/data/slime_field.json"
@@ -16,6 +18,7 @@ const HERO_CONFIG_PATH: String = "res://assets/data/hero_knight.json"
 const TYPES_CONFIG_PATH: String = "res://assets/data/hero_types.json"
 const CHEST_CONFIG_PATH: String = "res://assets/data/chest_tiers.json"
 const TREE_CONFIG_PATH: String = "res://assets/data/skill_tree.json"
+const EVENTS_CONFIG_PATH: String = "res://assets/data/run_events.json"
 const HUD_SCENE: PackedScene = preload("res://src/ui/hud/hud.tscn")
 const HOTBAR_SCENE: PackedScene = preload("res://src/ui/hotbar/hotbar.tscn")
 const RESULT_SCENE: PackedScene = preload("res://src/ui/result/result_screen.tscn")
@@ -32,6 +35,8 @@ const SHAKE_EPSILON: float = 0.05
 @export var auto_drop_interval: float = 0.0
 ## Dev: starts the first run without the start button.
 @export var autostart: bool = false
+## Dev: schedules every run event early, ignoring the skill tree (see --force-events).
+@export var force_events: bool = false
 
 var _run_config: Dictionary = {}
 var _slime_config: Dictionary = {}
@@ -39,6 +44,9 @@ var _hero_config: Dictionary = {}
 var _types_config: Dictionary = {}
 var _chest_config: Dictionary = {}
 var _tree_config: Dictionary = {}
+var _events_config: Dictionary = {}
+var _events: RunEvents
+var _banner: EventBanner
 var _save: SaveData
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _size: Vector2 = Vector2.ZERO
@@ -68,7 +76,8 @@ func _ready() -> void:
 	_types_config = HeroTypes.load_config(TYPES_CONFIG_PATH)
 	_chest_config = ChestTiers.load_config(CHEST_CONFIG_PATH)
 	_tree_config = SkillTree.load_config(TREE_CONFIG_PATH)
-	if _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() or _types_config.is_empty() \
+	_events_config = RunEvents.load_config(EVENTS_CONFIG_PATH)
+	if _events_config.is_empty() or _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() or _types_config.is_empty() \
 			or _chest_config.is_empty() or _tree_config.is_empty():
 		return
 	_apply_user_args()
@@ -80,6 +89,9 @@ func _ready() -> void:
 	add_child(_hud)
 	_hud.setup(ui, _size, ChestBurst.ring_top_y(_run_config, _size), ChestBurst.ring_bottom_y(_run_config, _size))
 	_hud.start_pressed.connect(_on_start_pressed)
+	_banner = EventBanner.new()
+	add_child(_banner)
+	_banner.setup(_events_config["banner"], _size)
 	_result_screen = RESULT_SCENE.instantiate()
 	add_child(_result_screen)
 	_result_screen.setup(ui, _size)
@@ -105,6 +117,7 @@ func _process(delta: float) -> void:
 	if _controller == null:
 		return
 	_update_world_shake(delta)
+	_update_events()
 	_update_chest()
 	_update_harvest_coins()
 	_auto_drop(delta)
@@ -132,10 +145,18 @@ func _start_run() -> void:
 	_world.add_child(_squad)
 	_field = SlimeField.new()
 	_world.add_child(_field)
-	_field.setup(_slime_config, _rng, _size, runs, _level("density"), _level("coin"))
-	# Hero counts and arrows per volley come from PlayerStats, the one place that turns levels into stats.
+	# Hero counts, arrows per volley and the run events come from PlayerStats, the one place that turns
+	# levels into stats. Event times are decided once, here (story-007).
 	var stats: Dictionary = PlayerStats.compute(_save.levels, _hero_config, _slime_config, _chest_config,
 			_run_config, _tree_config)
+	var duration: float = run_seconds_override if run_seconds_override > 0.0 			else RunController.run_duration(_run_config, _level("time"))
+	_events = RunEvents.new()
+	_events.start(_events_config, stats, duration, _rng)
+	if force_events:
+		_events.force_all(_events_config)
+	_field.setup(_slime_config, _rng, _size, runs, _level("density"), _level("coin"), _events_config,
+			_events.golden_chance)
+	_field.hero_locator = _nearest_hero_position
 	_squad.setup(_hero_config, _types_config, _slime_config, _field, _rng, _size, runs,
 			{"land": _level("land"), "spd": _level("spd"), "dmg": _level("dmg")}, stats)
 	_squad.shake_changed.connect(func(offset: Vector2) -> void: _squad_shake = offset)
@@ -143,6 +164,8 @@ func _start_run() -> void:
 	_hotbar = HOTBAR_SCENE.instantiate()
 	add_child(_hotbar)
 	move_child(_hotbar, _result_screen.get_index())
+	# The banner is a plain Control and the world's grass covers the screen: draw the banner after the world.
+	move_child(_banner, get_child_count() - 1)
 	_hotbar.setup(_types_config, _squad.roster, _size)
 	_hotbar.type_requested.connect(func(type: String) -> void: _squad.roster.select(type))
 	_view = RunView.new()
@@ -160,7 +183,7 @@ func _start_run() -> void:
 	if run_seconds_override > 0.0:
 		_controller.duration = run_seconds_override
 	_view.setup(_run_config, _slime_config, _controller, _size)
-	_field.slime_killed.connect(func(_slime: Slime) -> void: _controller.kills += 1)
+	_field.slime_killed.connect(_on_slime_killed)
 	_chest.deposited.connect(func(amount: float, _total: float) -> void: _controller.collected += amount)
 	_controller.chest_opened.connect(_on_chest_opened)
 	_controller.rain_blip.connect(_on_rain_blip)
@@ -169,6 +192,44 @@ func _start_run() -> void:
 	_auto_drop_timer = 0.0
 	_open_shake = 0.0
 	_squad_shake = Vector2.ZERO
+
+
+func _on_slime_killed(slime: Slime) -> void:
+	_controller.kills += 1
+	if slime is BossPudding:
+		_banner.show_text(_events_config["banner"]["text"]["boss_killed"])
+
+
+## Fires the run events that became due (RUNNING only) - story-007.
+func _update_events() -> void:
+	if _controller.phase != RunController.Phase.RUNNING:
+		return
+	var text: Dictionary = _events_config["banner"]["text"]
+	for id: String in _events.poll(_controller.duration - _controller.remaining_time()):
+		_banner.show_text(text[id])
+		match id:
+			RunEvents.RAIN:
+				var rain: Dictionary = _events_config["rain"]
+				for i in int(rain["count"]):
+					_field.spawn_slime(_rng.randf_range(rain["height_min"], rain["height_max"]))
+			RunEvents.GOBLIN:
+				_field.spawn_event("goblin")
+			RunEvents.BOSS:
+				var boss: Slime = _field.spawn_event("boss")
+				boss.landed.connect(func(landed: Slime) -> void:
+					_squad.impact_at(landed.position, float(_events_config["boss"]["landing_shake"])))
+
+
+## The nearest landed hero to `from` (goblin flee target), or null when none is on the ground.
+func _nearest_hero_position(from: Vector2) -> Variant:
+	var best: Variant = null
+	var best_distance: float = INF
+	for child: Node in _field.get_children():
+		var hero := child as Hero
+		if hero != null and hero.state == Hero.State.GROUNDED and from.distance_to(hero.position) < best_distance:
+			best_distance = from.distance_to(hero.position)
+			best = hero.position
+	return best
 
 
 func _clear_run() -> void:
@@ -396,5 +457,7 @@ func _apply_user_args() -> void:
 			run_seconds_override = arg.get_slice("=", 1).to_float()
 		elif arg.begins_with("--auto-drop="):
 			auto_drop_interval = arg.get_slice("=", 1).to_float()
+		elif arg == "--force-events":
+			force_events = true
 		elif arg == "--autostart":
 			autostart = true

@@ -55,13 +55,12 @@ static func is_hit(config: Dictionary, impact_pos: Vector2, impact_radius: float
 	return Vector2(delta.x, delta.y * weight).length() < impact_radius + slime_radius
 
 
-## Slimes caught by an impact. All slimes are grounded for now, so no height check is needed
-## (airborne slimes would be skipped here). Returns a new array, safe to iterate while killing.
+## Slimes caught by an impact; airborne (still falling) slimes are skipped. Returns a new array, safe to iterate while killing.
 static func find_victims(config: Dictionary, slimes: Array[Slime], impact_pos: Vector2,
 		impact_radius: float) -> Array[Slime]:
 	var victims: Array[Slime] = []
 	for slime: Slime in slimes:
-		if is_hit(config, impact_pos, impact_radius, slime.position, slime.radius):
+		if not slime.is_airborne() and is_hit(config, impact_pos, impact_radius, slime.position, slime.radius):
 			victims.append(slime)
 	return victims
 

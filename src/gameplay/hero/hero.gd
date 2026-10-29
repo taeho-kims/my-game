@@ -70,7 +70,7 @@ static func nearest_slime(slimes: Array[Slime], from: Vector2, excluded: Diction
 	var best: Slime = null
 	var best_distance: float = INF
 	for slime: Slime in slimes:
-		if excluded.has(slime):
+		if excluded.has(slime) or slime.is_airborne():
 			continue
 		var distance: float = from.distance_to(slime.position)
 		if distance < best_distance:

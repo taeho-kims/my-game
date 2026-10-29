@@ -1,0 +1,70 @@
+{
+  "rich_coin_kind_chance": { "gem": 0.25, "silver": 0.35 },
+  "fall": { "gravity": 450 },
+  "golden": {
+    "base_hp": 22,
+    "radius": 7,
+    "color": "#f2c14e",
+    "kill_coins": 12
+  },
+  "rain": {
+    "window_start": 6,
+    "window_end_margin": 6,
+    "count": 22,
+    "height_min": 100,
+    "height_max": 300
+  },
+  "goblin": {
+    "window_start": 5,
+    "window_end_ratio": 0.6,
+    "base_hp": 90,
+    "radius": 6,
+    "life": 9,
+    "hit_drop_chance": 0.6,
+    "hit_drop_coins": 1,
+    "kill_coins": 25,
+    "spawn_margin_x": 10,
+    "exit_margin": 15,
+    "flee_speed_x": 65,
+    "flee_speed_y": 50,
+    "flee_response": 3,
+    "exit_speed_boost": 1.05,
+    "wander_speed_y_factor": 1.3,
+    "colors": { "body": "#5a9a3c", "ear": "#3f7a2a", "eye": "#1b1612", "sack": "#b9862a", "flash": "#ffffff" }
+  },
+  "boss": {
+    "time_ratio": 0.4,
+    "base_hp": 420,
+    "radius": 20,
+    "drop_height": 250,
+    "kill_coins": 45,
+    "hop_speed": 12.5,
+    "landing_shake": 6,
+    "hp_bar_width": 35,
+    "hp_bar_lift": 6,
+    "color": "#f5b8c4",
+    "crown_color": "#f2c14e",
+    "crown_rects": [[-7, 0, 14, 3.5], [-7, -3.5, 2.5, 3.5], [-1, -4.5, 2.5, 4.5], [4.5, -3.5, 2.5, 3.5]]
+  },
+  "banner": {
+    "duration": 1.0,
+    "pop_time": 0.15,
+    "pop_scale": 1.4,
+    "fade_start": 0.7,
+    "font_size": 26,
+    "outline_size": 3,
+    "top_ratio": 0.18,
+    "color": "#f2c14e",
+    "outline_color": "#2a1d15",
+    "text": {
+      "rain": "슬라임 비!",
+      "goblin": "보물 고블린!",
+      "boss": "대왕 푸딩 등장!",
+      "boss_killed": "대왕 푸딩 격파!"
+    }
+  },
+  "force": {
+    "golden_chance": 0.3,
+    "times": { "rain": 2, "goblin": 4, "boss": 6 }
+  }
+}

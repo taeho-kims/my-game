@@ -24,6 +24,12 @@ var _runs: int = 0
 var _density_level: int = 0
 var _coin_level: int = 0
 var _spawn_timer: float = 0.0
+var _events: Dictionary = {}
+var _golden_chance: float = 0.0
+
+## Takes the position of a goblin and returns the nearest landed hero's position (Vector2) or null; set by the
+## owner before treasure goblins spawn.
+var hero_locator: Callable
 
 
 ## Loads and validates the slime field data file; returns an empty Dictionary (after
@@ -84,7 +90,11 @@ static func coin_value(config: Dictionary, kind: String, runs: int, coin_level: 
 
 ## Maps a uniform roll in [0, 1) to a coin kind: gem, then silver, then copper.
 static func roll_coin_kind(config: Dictionary, roll: float) -> String:
-	var chance: Dictionary = config["coin"]["kind_chance"]
+	return pick_coin_kind(config["coin"]["kind_chance"], roll)
+
+
+## Same as `roll_coin_kind` for an explicit chance table {gem, silver} (the rich drop of golden slimes and the boss).
+static func pick_coin_kind(chance: Dictionary, roll: float) -> String:
 	var gem: float = chance["gem"]
 	var silver: float = chance["silver"]
 	if roll < gem:
@@ -95,10 +105,13 @@ static func roll_coin_kind(config: Dictionary, roll: float) -> String:
 
 
 ## Prepares the field for a run and spawns the starting slimes.
-## `field_size` is the viewport size; `runs` is the number of completed runs.
+## `field_size` is the viewport size; `runs` is the number of completed runs. `events` is run_events.json
+## and `golden_chance` the chance that a spawning slime is golden (story-007); both default to "no events".
 func setup(config: Dictionary, rng: RandomNumberGenerator, field_size: Vector2, runs: int,
-		density_level: int, coin_level: int) -> void:
+		density_level: int, coin_level: int, events: Dictionary = {}, golden_chance: float = 0.0) -> void:
 	_config = config
+	_events = events
+	_golden_chance = golden_chance
 	_rng = rng
 	_runs = runs
 	_density_level = density_level
@@ -117,7 +130,7 @@ func setup(config: Dictionary, rng: RandomNumberGenerator, field_size: Vector2, 
 ## Advances the spawn timer: one slime per interval while below the population cap.
 func tick(delta: float) -> void:
 	_spawn_timer -= delta
-	if _spawn_timer <= 0.0 and slimes.size() < max_slimes(_config, _density_level):
+	if _spawn_timer <= 0.0 and _normal_count() < max_slimes(_config, _density_level):
 		_spawn_slime()
 		var spawn: Dictionary = _config["spawn"]
 		_spawn_timer = spawn["interval"]
@@ -127,7 +140,47 @@ func _process(delta: float) -> void:
 	tick(delta)
 
 
-func _spawn_slime() -> void:
+## Spawns a normal (or golden) slime at a random field point; `height` > 0 makes it fall from that high
+## (slime rain). Returns it.
+func spawn_slime(height: float = 0.0) -> Slime:
+	return _spawn_slime(height)
+
+
+## Spawns the "goblin" (from a field edge) or the "boss" (falling into the field centre) of the run events.
+func spawn_event(kind: String) -> Slime:
+	var cfg: Dictionary = _events[kind]
+	var hp: float = RunEvents.hp(_events, _config, kind, _runs)
+	if kind == "goblin":
+		var spawn: Dictionary = _config["spawn"]
+		var edge: float = float(cfg["spawn_margin_x"])
+		var x: float = edge if _rng.randf() < 0.5 else _bounds.end.x - edge
+		var goblin := TreasureGoblin.new()
+		add_child(goblin)
+		goblin.setup(_config, _rng, _bounds, Vector2(x, _rng.randf_range(
+				_bounds.position.y + float(spawn["margin_top"]), _bounds.end.y - float(spawn["margin_bottom"]))),
+				hp, cfg["radius"], Color.WHITE)
+		goblin.apply_event(_events, hero_locator)
+		goblin.hit_dropped.connect(func(source: TreasureGoblin) -> void:
+			for i in int(cfg["hit_drop_coins"]):
+				_drop_coin(source.position, _config["coin"]["kind_chance"]))
+		goblin.escaped.connect(_on_goblin_escaped)
+		return _register(goblin, 0.0)
+	var boss := BossPudding.new()
+	add_child(boss)
+	boss.setup(_config, _rng, _bounds, _bounds.get_center(), hp, cfg["radius"], Color.html(cfg["color"]))
+	boss.apply_event(cfg)
+	return _register(boss, cfg["drop_height"])
+
+
+func _normal_count() -> int:
+	var count: int = 0
+	for slime: Slime in slimes:
+		if slime.counts_toward_cap:
+			count += 1
+	return count
+
+
+func _spawn_slime(height: float = 0.0) -> Slime:
 	var spawn: Dictionary = _config["spawn"]
 	var slime_cfg: Dictionary = _config["slime"]
 	var margin_x: float = spawn["margin_x"]
@@ -137,28 +190,51 @@ func _spawn_slime() -> void:
 	var radius: float = _rng.randf_range(slime_cfg["radius_min"], slime_cfg["radius_max"])
 	var colors: Array = slime_cfg["colors"]
 	var color := Color.html(colors[_rng.randi_range(0, colors.size() - 1)])
+	if _golden_chance > 0.0 and _rng.randf() < _golden_chance:
+		var cfg: Dictionary = _events["golden"]
+		var golden := GoldenSlime.new()
+		add_child(golden)
+		golden.setup(_config, _rng, _bounds, pos, RunEvents.hp(_events, _config, "golden", _runs),
+				cfg["radius"], Color.html(cfg["color"]))
+		golden.apply_event(cfg)
+		return _register(golden, height)
 	var slime := Slime.new()
 	add_child(slime)
 	slime.setup(_config, _rng, _bounds, pos, slime_hp(_config, _runs), radius, color)
+	return _register(slime, height)
+
+
+func _register(slime: Slime, height: float) -> Slime:
 	slime.died.connect(_on_slime_died)
 	slimes.append(slime)
+	if height > 0.0:
+		slime.drop_from(height, _events["fall"]["gravity"])
+	return slime
+
+
+func _on_goblin_escaped(goblin: TreasureGoblin) -> void:
+	slimes.erase(goblin)
+	goblin.queue_free()
 
 
 func _on_slime_died(slime: Slime) -> void:
 	slimes.erase(slime)
 	var drop: Dictionary = _config["drop"]
-	var count: int = int(drop["coins_base"])
-	if _rng.randf() < float(drop["extra_coin_chance"]):
-		count += 1
+	var count: int = slime.drop_count
+	if count <= 0:
+		count = int(drop["coins_base"])
+		if _rng.randf() < float(drop["extra_coin_chance"]):
+			count += 1
+	var chance: Dictionary = _events["rich_coin_kind_chance"] if slime.rich_drop else _config["coin"]["kind_chance"]
 	for i in count:
-		_drop_coin(slime.position)
+		_drop_coin(slime.position, chance)
 	slime_killed.emit(slime)
 	slime.queue_free()
 
 
-func _drop_coin(origin: Vector2) -> void:
+func _drop_coin(origin: Vector2, kind_chance: Dictionary) -> void:
 	var cfg: Dictionary = _config["coin"]
-	var kind: String = roll_coin_kind(_config, _rng.randf())
+	var kind: String = pick_coin_kind(kind_chance, _rng.randf())
 	var angle: float = _rng.randf_range(0.0, TAU)
 	var speed: float = _rng.randf_range(cfg["scatter_speed_min"], cfg["scatter_speed_max"])
 	var velocity := Vector2(cos(angle), sin(angle) * float(cfg["scatter_y_ratio"])) * speed

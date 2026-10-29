@@ -177,12 +177,18 @@ func _new_hero(type: String) -> Hero:
 
 
 func _on_hero_landed(hero: Hero) -> void:
+	impact_at(hero.position, LandingImpact.shake_amplitude(_config, _land_level))
+
+
+## A landing impact (ring, dust, damage to the slimes around, `shake_amount` px of shake) at `ground_pos`:
+## a knight's landing, or the boss pudding's (story-007).
+func impact_at(ground_pos: Vector2, shake_amount: float) -> void:
 	var impact_radius: float = LandingImpact.radius(_config, _land_level)
-	_impact.trigger(hero.position, impact_radius, LandingImpact.shake_amplitude(_config, _land_level))
+	_impact.trigger(ground_pos, impact_radius, shake_amount)
 	var amount: float = LandingImpact.damage(_config, _land_level, _run_scale)
-	for slime: Slime in LandingImpact.find_victims(_config, _field.slimes, hero.position, impact_radius):
+	for slime: Slime in LandingImpact.find_victims(_config, _field.slimes, ground_pos, impact_radius):
 		_hit(slime, amount)
-	landed.emit(hero.position, impact_radius)
+	landed.emit(ground_pos, impact_radius)
 
 
 func _on_hero_hit_dealt(target: Slime, amount: float) -> void:

@@ -28,7 +28,7 @@ static func find_victims(type_config: Dictionary, slimes: Array[Slime], center: 
 	var radius: float = type_config["slash"]["radius"]
 	var victims: Array[Slime] = []
 	for slime: Slime in slimes:
-		if center.distance_to(slime.position) < radius + slime.radius:
+		if not slime.is_airborne() and center.distance_to(slime.position) < radius + slime.radius:
 			victims.append(slime)
 	return victims
 

@@ -17,9 +17,22 @@ const EYE_COLOR: Color = Color("#1b1612")
 const HP_BAR_BACK_COLOR: Color = Color("#1b1612")
 const HP_BAR_FILL_COLOR: Color = Color("#7ad06a")
 
+## Emitted when a falling slime (event slimes, see `drop_from`) touches the ground.
+signal landed(slime: Slime)
+
 var hp: float = 0.0
 var max_hp: float = 0.0
 var radius: float = 0.0
+## Coins dropped on death; 0 means the field's normal drop rule.
+var drop_count: int = 0
+## True for the rich drop (more gems and silver, see run_events.json rich_coin_kind_chance).
+var rich_drop: bool = false
+## False for slimes outside the normal population cap (goblin, boss).
+var counts_toward_cap: bool = true
+## Height above the ground while falling; 0 when grounded. Airborne slimes cannot be hit.
+var height: float = 0.0
+## Extra px the hp bar is lifted (a crown or hat above the body).
+var hp_bar_lift: float = 0.0
 
 var _cfg: Dictionary = {}
 var _fps: float = 60.0
@@ -32,6 +45,8 @@ var _hop_left: float = 0.0
 var _age: float = 0.0
 var _flash_left: float = 0.0
 var _dead: bool = false
+var _fall_speed: float = 0.0
+var _fall_gravity: float = 0.0
 
 
 ## Initializes the slime. `config` is the full slime_field config, `bounds` is the
@@ -70,10 +85,31 @@ func contains_point(world_point: Vector2) -> bool:
 	return absf(local.x) <= radius and local.y >= -radius * BODY_HEIGHT_RATIO and local.y <= 0.0
 
 
+## Starts the slime `start_height` px above its ground point, falling with `gravity` (px/s^2).
+func drop_from(start_height: float, gravity: float) -> void:
+	height = start_height
+	_fall_speed = 0.0
+	_fall_gravity = gravity
+	queue_redraw()
+
+
+## True while the slime is still falling.
+func is_airborne() -> bool:
+	return height > 0.0
+
+
 ## Steps movement and timers by `delta` seconds.
 func advance(delta: float) -> void:
 	_age += delta
 	_flash_left = maxf(0.0, _flash_left - delta)
+	if height > 0.0:
+		_fall_speed += _fall_gravity * delta
+		height -= _fall_speed * delta
+		if height <= 0.0:
+			height = 0.0
+			landed.emit(self)
+		queue_redraw()
+		return
 	_hop_timer -= delta
 	if _hop_timer <= 0.0:
 		var speed: float = _rng.randf_range(_cfg["hop_speed_min"], _cfg["hop_speed_max"])
@@ -120,7 +156,7 @@ func _draw() -> void:
 	var wobble: float = sin(_age * float(_cfg["wobble_speed"])) * float(_cfg["wobble_amplitude"])
 	var sx: float = 1.0 - hopping * float(_cfg["hop_stretch_x"]) + wobble
 	var sy: float = 1.0 + hopping * float(_cfg["hop_stretch_y"]) - wobble
-	var lift: float = roundf(hopping * float(_cfg["hop_lift"]))
+	var lift: float = roundf(hopping * float(_cfg["hop_lift"])) + roundf(height)
 	draw_set_transform(Vector2(0.0, -lift), 0.0, Vector2.ONE)
 
 	var col: Color = Color.WHITE if _flash_left > 0.0 else _color
@@ -139,11 +175,18 @@ func _draw() -> void:
 	draw_rect(Rect2(-eye_x - 1.0, eye_y, 2.0, 2.0), EYE_COLOR)
 	draw_rect(Rect2(eye_x - 1.0, eye_y, 2.0, 2.0), EYE_COLOR)
 
+	_draw_decoration(-r * 1.45 * sy)
+
 	if hp < max_hp:
 		var bar_w: float = _cfg["hp_bar_width"]
-		var bar_y: float = roundf(-r * 1.6 * sy)
+		var bar_y: float = roundf(-r * 1.6 * sy - hp_bar_lift)
 		draw_rect(Rect2(roundf(-bar_w / 2.0) - 1.0, bar_y - 1.0, bar_w + 2.0, 4.0), HP_BAR_BACK_COLOR)
 		draw_rect(Rect2(roundf(-bar_w / 2.0), bar_y, roundf(bar_w * maxf(0.0, hp / max_hp)), 2.0), HP_BAR_FILL_COLOR)
+
+
+## Hook for subclasses: draws on top of the body; `body_top` is the y of the body's top edge.
+func _draw_decoration(_body_top: float) -> void:
+	pass
 
 
 ## Fills an ellipse with one-pixel-high rows so it stays pixel-art crisp at base resolution.

@@ -175,3 +175,7 @@ $RECYCLE.BIN/
 # the project root. Anchored so a reports/ folder elsewhere stays tracked.
 /reports/
 /test-results/
+
+# === QA Evidence ===
+# Godot --write-movie writes a .wav beside the screenshot frames; only the PNGs are evidence.
+/production/qa/evidence/**/*.wav

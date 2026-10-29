@@ -1,7 +1,7 @@
 # Story 006: 궁수·광전사 + 핫바(숫자키 1·2·3)
 
 > **Epic**: slime-nodaji
-> **Status**: In Progress
+> **Status**: Complete
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Logic
 > **Estimate**: M
@@ -96,3 +96,12 @@ tests/unit/heroes/hero_types_test.gd
 
 - Depends on: `production/epics/slime-nodaji/story-002-hero-drop-combat.md`
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-10-29
+**Criteria**: 9/9 passing (none deferred)
+**Deviations**: `hero_roster.gd`, `hero_types.gd` added beyond the original file list (advisory, already listed under `## Files`). 광전사 베기 반경은 `types.barb.slash.radius` + 슬라임 반경, 자동 전환은 핫바 순서상 남은 수가 있는 첫 타입 — 둘 다 사용자 확인 후 유지.
+**Test Evidence**: `tests/unit/heroes/hero_types_test.gd` (24 tests, full suite 139 passing); screenshots in `production/qa/evidence/story-006-archer-berserker-hotbar/`; keys, click and auto-switch confirmed by the user in F5.
+**Reviewed by**: self, no independent review

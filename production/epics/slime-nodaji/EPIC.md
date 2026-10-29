@@ -36,5 +36,5 @@
 | 003 | 커서 자석 수집 + 상자 5등급·배율 | Logic | Complete | N/A |
 | 004 | 시간제 한 판 + 상자 개봉·마지막 수확·정산 화면 | UI | Complete | N/A |
 | 005 | 스킬 트리 16노드 + 골드 소비 + 저장 | Integration | Complete | N/A |
-| 006 | 궁수·광전사 + 핫바 | Logic | Ready | N/A |
+| 006 | 궁수·광전사 + 핫바 | Logic | Complete | N/A |
 | 007 | 이벤트 4종 | Logic | Ready | N/A |

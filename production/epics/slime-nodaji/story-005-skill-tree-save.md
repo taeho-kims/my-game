@@ -1,12 +1,12 @@
 # Story 005: 스킬 트리 16노드 + 골드 소비 + 저장
 
 > **Epic**: slime-nodaji
-> **Status**: Ready
+> **Status**: In Progress
 > **Layer**: N/A (minimal — no layers)
 > **Type**: Integration
 > **Estimate**: L
 > **Manifest Version**: N/A (minimal — no control manifest)
-> **Last Updated**: [set by /dev-story when implementation begins]
+> **Last Updated**: 2026-10-28
 
 ## Context
 
@@ -59,15 +59,12 @@
 
 ## Files
 
-- src/meta/skill_tree.gd
-- src/meta/player_stats.gd
-- src/meta/save_data.gd
-- src/ui/skill_tree/skill_tree_screen.gd
-- src/ui/skill_tree/skill_tree_screen.tscn
-- assets/data/skill_tree.json
-- tests/integration/skill-tree/skill_tree_save_test.gd
-
----
+- src/meta/skill_tree.gd — node rules: cost, unlock, purchase, node state (pure statics)
+- src/meta/player_stats.gd — next-run stats from the levels, reusing each system's own formulas
+- src/meta/save_data.gd — versioned save: migration, defaults, unknown keys kept, corrupt file = new game
+- src/ui/skill_tree/skill_tree_screen.gd (+ .tscn)
+- src/gameplay/run/run_scene.gd — loads/saves the SaveData, opens the tree, applies the run result
+- assets/data/skill_tree.json — 16 nodes, stats, save settings, tree layout, texts
 
 ## QA Test Cases
 

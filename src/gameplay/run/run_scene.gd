@@ -1,38 +1,29 @@
 extends Node2D
-## One timed run, end to end (production/epics/slime-nodaji/story-004-run-timer-burst.md): start button,
-## the run (slime field, knights, magnet, chest), the burst (chest to the centre, opening, loot rain),
-## the final harvest (the magnet picks the landed loot up again) and the result screen, then a quick
-## re-run. Wires RunController to the HUD, the result screen and the view. Gold and the run count live
-## in memory only (saving is story 005).
+## The whole game loop (production/epics/slime-nodaji/story-004-run-timer-burst.md and story-005-skill-tree-save.md):
+## start button, the run (slime field, knights, magnet, chest), the burst (chest to the centre, opening,
+## loot rain), the final harvest (the magnet picks the landed loot up again), the result screen, and the
+## skill tree where the gold is spent. Wires RunController to the HUD, the result screen and the view,
+## and the save file (SaveData) to the tree: gold, run count, best record and node levels are saved after
+## every run and every purchase and restored on the next start.
 ##
 ## Dev options: the exports below, plus the command-line user args (after `--`):
 ##   --run-seconds=N   overrides the run length            --autostart   starts without the button
-##   --auto-drop=N     drops a knight every N seconds      --runs=N      starts at run N
+##   --auto-drop=N     drops a knight every N seconds
 
 const RUN_CONFIG_PATH: String = "res://assets/data/run.json"
 const SLIME_CONFIG_PATH: String = "res://assets/data/slime_field.json"
 const HERO_CONFIG_PATH: String = "res://assets/data/hero_knight.json"
 const CHEST_CONFIG_PATH: String = "res://assets/data/chest_tiers.json"
+const TREE_CONFIG_PATH: String = "res://assets/data/skill_tree.json"
 const HUD_SCENE: PackedScene = preload("res://src/ui/hud/hud.tscn")
 const RESULT_SCENE: PackedScene = preload("res://src/ui/result/result_screen.tscn")
+const TREE_SCENE: PackedScene = preload("res://src/ui/skill_tree/skill_tree_screen.tscn")
 const GRASS_COLOR: Color = Color("#4f8a3c")
 const AUTO_DROP_MARGIN: Vector2 = Vector2(20.0, 40.0)
 ## Amplitude floor of the synthesised tones' exponential decay (as Magnet.SOUND_FLOOR).
 const SOUND_FLOOR: float = 0.0001
 const SHAKE_EPSILON: float = 0.05
 
-## Completed runs (drives the 1.07^runs scale); counts up on every re-run.
-@export var runs: int = 0
-## Upgrade levels (the skill tree that sets them is story 005).
-@export var time_level: int = 0
-@export var density_level: int = 0
-@export var coin_level: int = 0
-@export var hero_level: int = 0
-@export var land_level: int = 0
-@export var spd_level: int = 0
-@export var dmg_level: int = 0
-@export var magnet_level: int = 0
-@export var chest_level: int = 0
 ## Dev: when above 0, overrides the run length in seconds.
 @export var run_seconds_override: float = 0.0
 ## Dev: drops a knight at a random point every this many seconds while above 0.
@@ -44,9 +35,10 @@ var _run_config: Dictionary = {}
 var _slime_config: Dictionary = {}
 var _hero_config: Dictionary = {}
 var _chest_config: Dictionary = {}
+var _tree_config: Dictionary = {}
+var _save: SaveData
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _size: Vector2 = Vector2.ZERO
-var _gold: int = 0
 var _world: Node2D
 var _field: SlimeField
 var _squad: HeroSquad
@@ -56,6 +48,7 @@ var _view: RunView
 var _controller: RunController
 var _hud: RunHud
 var _result_screen: ResultScreen
+var _tree_screen: SkillTreeScreen
 var _sfx_player: AudioStreamPlayer
 var _blip_player: AudioStreamPlayer
 var _squad_shake: Vector2 = Vector2.ZERO
@@ -64,30 +57,35 @@ var _auto_drop_timer: float = 0.0
 var _run_scale: float = 1.0
 
 
-## Emitted by the result screen's "스킬 트리로" button; the skill tree screen is story 005.
-signal skill_tree_requested
-
-
 func _ready() -> void:
 	_run_config = RunController.load_config(RUN_CONFIG_PATH)
 	_slime_config = SlimeField.load_config(SLIME_CONFIG_PATH)
 	_hero_config = HeroSquad.load_config(HERO_CONFIG_PATH)
 	_chest_config = ChestTiers.load_config(CHEST_CONFIG_PATH)
-	if _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() or _chest_config.is_empty():
+	_tree_config = SkillTree.load_config(TREE_CONFIG_PATH)
+	if _run_config.is_empty() or _slime_config.is_empty() or _hero_config.is_empty() \
+			or _chest_config.is_empty() or _tree_config.is_empty():
 		return
 	_apply_user_args()
+	_save = SaveData.load_file(_tree_config["save"]["path"], int(_tree_config["save"]["version"]))
 	_rng.randomize()
 	_size = get_viewport_rect().size
 	var ui: Dictionary = _run_config["ui"]
 	_hud = HUD_SCENE.instantiate()
 	add_child(_hud)
 	_hud.setup(ui, _size, ChestBurst.ring_top_y(_run_config, _size), ChestBurst.ring_bottom_y(_run_config, _size))
-	_hud.start_pressed.connect(_start_run)
+	_hud.start_pressed.connect(_on_start_pressed)
 	_result_screen = RESULT_SCENE.instantiate()
 	add_child(_result_screen)
 	_result_screen.setup(ui, _size)
-	_result_screen.retry_pressed.connect(_on_retry)
-	_result_screen.skill_tree_pressed.connect(_on_skill_tree)
+	_result_screen.retry_pressed.connect(_start_run)
+	_result_screen.skill_tree_pressed.connect(_open_tree)
+	_tree_screen = TREE_SCENE.instantiate()
+	add_child(_tree_screen)
+	_tree_screen.setup(_tree_config, _size)
+	_tree_screen.node_pressed.connect(_on_tree_node_pressed)
+	_tree_screen.start_pressed.connect(_start_run)
+	_tree_screen.reset_confirmed.connect(_on_reset_confirmed)
 	_sfx_player = AudioStreamPlayer.new()
 	add_child(_sfx_player)
 	_blip_player = AudioStreamPlayer.new()
@@ -112,7 +110,9 @@ func _process(delta: float) -> void:
 func _start_run() -> void:
 	_hud.hide_start()
 	_result_screen.hide_result()
+	_tree_screen.hide_tree()
 	_clear_run()
+	var runs: int = _save.runs
 	_run_scale = SlimeField.run_scale(_slime_config, runs)
 	_world = Node2D.new()
 	add_child(_world)
@@ -127,22 +127,22 @@ func _start_run() -> void:
 	_world.add_child(_squad)
 	_field = SlimeField.new()
 	_world.add_child(_field)
-	_field.setup(_slime_config, _rng, _size, runs, density_level, coin_level)
+	_field.setup(_slime_config, _rng, _size, runs, _level("density"), _level("coin"))
 	_squad.setup(_hero_config, _slime_config, _field, _rng, _size, runs,
-			{"hero": hero_level, "land": land_level, "spd": spd_level, "dmg": dmg_level})
+			{"hero": _level("hero"), "land": _level("land"), "spd": _level("spd"), "dmg": _level("dmg")})
 	_squad.shake_changed.connect(func(offset: Vector2) -> void: _squad_shake = offset)
 	_view = RunView.new()
 	_world.add_child(_view)
 	_chest = Chest.new()
 	_world.add_child(_chest)
-	_chest.setup(_chest_config, _size, _run_scale, chest_level)
+	_chest.setup(_chest_config, _size, _run_scale, _level("chest"))
 	_magnet = Magnet.new()
 	_world.add_child(_magnet)
-	_magnet.setup(_chest_config, _rng, _field.coins, _chest, _size, magnet_level)
+	_magnet.setup(_chest_config, _rng, _field.coins, _chest, _size, _level("magnet"))
 	_controller = RunController.new()
 	add_child(_controller)
 	_controller.start(_run_config, _chest_config, _slime_config, _rng, _size, _chest.position, runs,
-			{"time": time_level, "chest": chest_level, "coin": coin_level}, _magnet.flying_count)
+			{"time": _level("time"), "chest": _level("chest"), "coin": _level("coin")}, _magnet.flying_count)
 	if run_seconds_override > 0.0:
 		_controller.duration = run_seconds_override
 	_view.setup(_run_config, _slime_config, _controller, _size)
@@ -191,22 +191,70 @@ func _on_rain_blip(frequency: float) -> void:
 	_play(_blip_player, _run_config["rain"]["blip"], frequency)
 
 
+## Applies the run's gold, run count and best record to the save (the result handler of the run) and
+## writes it, then opens the result screen.
 func _on_run_finished(result: RunResult) -> void:
-	_gold += result.total_gold()
+	_save.gold += result.total_gold()
+	_save.runs += 1
+	_save.best = maxi(_save.best, result.total_gold())
+	_persist()
 	_result_screen.show_result(result)
 
 
-func _on_retry() -> void:
-	runs += 1
-	_start_run()
+## The start button of the first screen: the tree after the first run (as the prototype), else a run.
+func _on_start_pressed() -> void:
+	if _save.runs > 0:
+		_hud.hide_start()
+		_open_tree()
+	else:
+		_start_run()
 
 
-func _on_skill_tree() -> void:
-	skill_tree_requested.emit()
-	runs += 1
+func _open_tree() -> void:
 	_clear_run()
 	_result_screen.hide_result()
-	_hud.show_start()
+	_hud.hide_start()
+	_tree_screen.show_tree(_tree_view())
+
+
+func _on_tree_node_pressed(id: String) -> void:
+	var node: Dictionary = SkillTree.find_node(_tree_config, id)
+	var outcome: Dictionary = SkillTree.purchase(_tree_config, _save.levels, _save.gold, id)
+	var texts: Dictionary = _tree_config["ui"]["text"]
+	if outcome["ok"]:
+		_save.gold = int(outcome["gold"])
+		_save.levels = outcome["levels"] as Dictionary
+		_persist()
+		_tree_screen.show_tree(_tree_view())
+		_tree_screen.show_message(texts["learned"] % [node["name"], SkillTree.level(_save.levels, id)])
+	elif outcome["reason"] == SkillTree.REASON_GOLD:
+		_tree_screen.show_message(texts["short"] % SkillTree.format_amount(int(outcome["shortfall"])))
+
+
+func _on_reset_confirmed() -> void:
+	_save = SaveData.new_game(int(_tree_config["save"]["version"]))
+	_persist()
+	_tree_screen.show_tree(_tree_view())
+
+
+func _persist() -> void:
+	_save.save_file(_tree_config["save"]["path"])
+
+
+func _level(id: String) -> int:
+	return SkillTree.level(_save.levels, id)
+
+
+## What the tree screen shows: gold, best record, the next run's stats and every node's level and state.
+func _tree_view() -> Dictionary:
+	var nodes: Array[Dictionary] = []
+	for node: Dictionary in _tree_config["nodes"]:
+		var id: String = node["id"]
+		nodes.append({"id": id, "level": _level(id),
+				"state": SkillTree.node_state(_tree_config, _save.levels, _save.gold, id)})
+	return {"gold": _save.gold, "best": _save.best, "nodes": nodes,
+			"stats": PlayerStats.compute(_save.levels, _hero_config, _slime_config, _chest_config,
+					_run_config, _tree_config)}
 
 
 ## Puts one real Coin on the floor per remaining loot entry so the magnet can pick it up again.
@@ -281,7 +329,7 @@ func _hud_state() -> Dictionary:
 		ratio = (_chest.value - low) / (high - low)
 	var shown_tier: int = _controller.chest_tier if _controller.opened else tier
 	return {
-		"gold": _gold,
+		"gold": _save.gold,
 		"collected": roundi(_chest.value),
 		"phase": _controller.phase,
 		"time_ratio": _controller.time_ratio(),
@@ -332,7 +380,5 @@ func _apply_user_args() -> void:
 			run_seconds_override = arg.get_slice("=", 1).to_float()
 		elif arg.begins_with("--auto-drop="):
 			auto_drop_interval = arg.get_slice("=", 1).to_float()
-		elif arg.begins_with("--runs="):
-			runs = arg.get_slice("=", 1).to_int()
 		elif arg == "--autostart":
 			autostart = true

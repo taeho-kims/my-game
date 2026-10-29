@@ -1,0 +1,87 @@
+{
+  "nodes": [
+    { "id": "hero",    "name": "기사 증원",     "desc": "출격 기사 +1명",                            "x": 3, "y": 2, "max": 10, "base": 8,   "g": 1.55 },
+    { "id": "dmg",     "name": "날카로운 검",   "desc": "모든 영웅 공격력 +25%",                     "x": 2, "y": 2, "max": 10, "base": 12,  "g": 1.6,  "req": "hero" },
+    { "id": "spd",     "name": "연속 베기",     "desc": "공격 속도 +15%",                            "x": 1, "y": 2, "max": 8,  "base": 30,  "g": 1.7,  "req": "dmg" },
+    { "id": "archer",  "name": "궁수 고용",     "desc": "궁수 +1명. 멀리서 화살을 쏩니다",           "x": 2, "y": 1, "max": 5,  "base": 40,  "g": 1.9,  "req": "dmg" },
+    { "id": "arrows",  "name": "다발 화살",     "desc": "궁수가 한 번에 쏘는 화살 +1",               "x": 1, "y": 1, "max": 4,  "base": 90,  "g": 2.1,  "req": "archer" },
+    { "id": "land",    "name": "강하 충격",     "desc": "착지 피해와 충격 범위 증가",                "x": 3, "y": 1, "max": 8,  "base": 15,  "g": 1.6,  "req": "hero" },
+    { "id": "barb",    "name": "광전사 고용",   "desc": "광전사 +1명. 주변을 회전 베기",             "x": 4, "y": 1, "max": 3,  "base": 160, "g": 2.4,  "req": "land" },
+    { "id": "magnet",  "name": "자석 장갑",     "desc": "전리품 줍는 범위 +5",                       "x": 4, "y": 2, "max": 8,  "base": 10,  "g": 1.55, "req": "hero" },
+    { "id": "coin",    "name": "두둑한 주머니", "desc": "코인 가치 +30%",                            "x": 5, "y": 2, "max": 10, "base": 20,  "g": 1.6,  "req": "magnet" },
+    { "id": "golden",  "name": "황금 슬라임",   "desc": "황금 슬라임 출현율 증가 (코인 12배)",       "x": 5, "y": 1, "max": 5,  "base": 70,  "g": 1.9,  "req": "coin" },
+    { "id": "chest",   "name": "튼튼한 상자",   "desc": "상자 등급마다 배율 +10%",                   "x": 5, "y": 3, "max": 6,  "base": 60,  "g": 1.8,  "req": "coin" },
+    { "id": "boss",    "name": "대왕 푸딩",     "desc": "매 판 중반에 보스 푸딩 등장. 잡으면 대박",  "x": 6, "y": 2, "max": 1,  "base": 400, "g": 1,    "req": "coin" },
+    { "id": "time",    "name": "모래시계",      "desc": "한 판 시간 +4초",                           "x": 3, "y": 3, "max": 8,  "base": 14,  "g": 1.65, "req": "hero" },
+    { "id": "density", "name": "슬라임 둥지",   "desc": "들판의 슬라임 수 증가",                     "x": 2, "y": 3, "max": 8,  "base": 18,  "g": 1.6,  "req": "time" },
+    { "id": "rain",    "name": "슬라임 비",     "desc": "하늘에서 슬라임이 쏟아질 확률 +30%",        "x": 1, "y": 3, "max": 3,  "base": 120, "g": 2,    "req": "density" },
+    { "id": "goblin",  "name": "보물 고블린",   "desc": "코인을 흘리며 도망치는 고블린 등장",        "x": 4, "y": 3, "max": 1,  "base": 220, "g": 1,    "req": "time" }
+  ],
+  "stats": {
+    "arrows_base": 1,
+    "golden_base": 0.015,
+    "golden_per_level": 0.02,
+    "rain_per_level": 0.3
+  },
+  "save": {
+    "path": "user://slime_nodaji_save.json",
+    "version": 1,
+    "reset_confirm_seconds": 2.5
+  },
+  "layout": {
+    "origin": [72, 80],
+    "step": [100, 62],
+    "node_size": [92, 48]
+  },
+  "ui": {
+    "margin": 10,
+    "title_font_size": 14,
+    "font_size": 10,
+    "node_font_size": 9,
+    "outline_size": 3,
+    "line_width": 3,
+    "desc_y": 238,
+    "desc_height": 30,
+    "bottom_y": 322,
+    "button_size": [92, 28],
+    "reset_button_size": [72, 22],
+    "colors": {
+      "background": "#14100c",
+      "text": "#ffffff",
+      "text_outline": "#101010",
+      "gold": "#f2c14e",
+      "node_fill": "#4a3322",
+      "node_border": "#2a1d15",
+      "node_can_border": "#f2c14e",
+      "node_max_border": "#7bd66b",
+      "node_hover_fill": "#5d4129",
+      "node_locked_fill": "#241a12",
+      "text_locked": "#7a6a58",
+      "node_focus_border": "#ffffff",
+      "line_off": "#2a1d15",
+      "line_on": "#b9862a",
+      "desc": "#e8dcc4",
+      "danger": "#e0786c"
+    },
+    "text": {
+      "title": "영웅단 스킬 트리",
+      "gold": "골드 %s",
+      "hint": "노드를 눌러 업그레이드하세요. 금테 노드는 지금 살 수 있습니다.",
+      "node_level": "LV %d/%d",
+      "node_max": "MAX",
+      "desc_open": "%s: %s",
+      "desc_max": " (최대 레벨)",
+      "desc_cost": " · 비용 %s 골드",
+      "desc_locked": "잠김: 먼저 '%s'을(를) 배우세요.",
+      "short": "골드가 %s 부족합니다. 한 판 더 돌고 오세요.",
+      "learned": "%s LV %d 습득!",
+      "start": "출격!",
+      "reset": "초기화",
+      "reset_confirm": "정말 초기화?",
+      "run_info": "다음 판: %d초 · 기사 %d",
+      "run_archer": " · 궁수 %d",
+      "run_barb": " · 광전사 %d",
+      "run_best": " · 최고 기록 %s"
+    }
+  }
+}
